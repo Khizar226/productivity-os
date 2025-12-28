@@ -3,112 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productivity OS</title>
+    <title>Productivity OS - Achieve Your Goals</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        :root { --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
         .hidden-section { display: none !important; }
+        
+        .nav-active { color: #2563eb; background-color: #eff6ff; }
+        
         .spinner {
-            border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%;
-            width: 24px; height: 24px; animation: spin 1s linear infinite;
+            border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6;
+            border-radius: 50%; width: 24px; height: 24px;
+            animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Status Badges */
+        .status-badge { padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; }
+        .status-Todo { background: #f3f4f6; color: #374151; }
+        .status-InProgress { background: #dbeafe; color: #1e40af; }
+        .status-Done { background: #dcfce7; color: #166534; }
     </style>
 </head>
 
 <body class="bg-gray-50 text-gray-900 min-h-screen">
 
-    <!-- LOADING OVERLAY -->
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
-        <div class="spinner mb-4"></div>
-        <p class="text-gray-500">Loading your workspace...</p>
-    </div>
-
-    <!-- AUTH SCREEN -->
-    <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4 hidden-section">
-        <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="ph ph-rocket-launch text-3xl text-white"></i>
-            </div>
-            <h1 class="text-2xl font-bold mb-2">Welcome Back</h1>
-            <p class="text-gray-500 mb-8">Sign in to access your productivity OS</p>
-            
-            <button id="google-signin" class="w-full bg-white border border-gray-300 text-gray-700 font-medium py-3 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 mb-4">
-                <i class="ph ph-google-logo text-xl"></i> Continue with Google
-            </button>
-            
-            <div class="relative my-6">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
-                <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">Or use email</span></div>
-            </div>
-
-            <form id="login-form" class="space-y-4 text-left">
-                <input type="email" id="login-email" placeholder="Email" class="w-full px-4 py-3 border rounded-lg">
-                <input type="password" id="login-pass" placeholder="Password" class="w-full px-4 py-3 border rounded-lg">
-                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">Sign In</button>
-            </form>
-            <p class="mt-4 text-sm text-gray-500">No account? <button onclick="toggleAuthMode()" class="text-blue-600 font-bold">Sign Up</button></p>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading Workspace...</p>
         </div>
     </div>
 
-    <!-- APP SCREEN -->
+    <!-- AUTHENTICATION SCREEN -->
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+        <div class="max-w-md w-full space-y-8">
+            <div class="glass rounded-2xl p-10 shadow-xl">
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 mb-4">
+                        <i class="ph ph-rocket-launch text-3xl text-white"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Productivity OS</h1>
+                    <p class="text-gray-600">Your complete solution for achieving goals</p>
+                </div>
+                
+                <!-- Google Login (Restored Feature) -->
+                <button id="google-signin" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 font-medium py-3 px-4 rounded-lg hover:bg-gray-50 transition mb-6">
+                    <i class="ph ph-google-logo text-xl"></i>
+                    Continue with Google
+                </button>
+
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
+                    <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">Or use email</span></div>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="login-container">
+                    <form id="login-form" class="space-y-5">
+                        <input type="email" id="login-email" placeholder="Email Address" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="password" id="login-pass" placeholder="Password" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition">Sign In</button>
+                    </form>
+                    <p class="mt-6 text-center text-gray-600">
+                        New here? <button onclick="window.toggleAuthMode()" class="text-blue-600 font-semibold hover:text-blue-800 ml-1">Create an account</button>
+                    </p>
+                </div>
+                
+                <!-- Signup Form -->
+                <div id="signup-container" class="hidden-section">
+                    <form id="signup-form" class="space-y-5">
+                        <input type="email" id="signup-email" placeholder="Email Address" required class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="password" id="signup-password" placeholder="Password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition">Create Account</button>
+                    </form>
+                    <p class="mt-6 text-center text-gray-600">
+                        Already have an account? <button onclick="window.toggleAuthMode()" class="text-blue-600 font-semibold hover:text-blue-800 ml-1">Sign In</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION -->
     <div id="main-app" class="hidden-section">
         <!-- Navbar -->
-        <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4">
-                <div class="flex justify-between h-16">
-                    <div class="flex items-center gap-8">
-                        <div class="flex items-center gap-2 font-bold text-xl text-blue-900">
-                            <i class="ph ph-rocket-launch text-blue-600"></i> Productivity OS
+        <nav class="bg-gray-900 border-b border-gray-800 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center mr-3">
+                            <i class="ph ph-rocket-launch text-white text-sm"></i>
                         </div>
-                        <div class="hidden md:flex gap-4">
-                            <button onclick="switchTab('dashboard')" class="nav-btn text-blue-600 font-medium px-3 py-2" id="nav-dashboard">Dashboard</button>
-                            <button onclick="switchTab('projects')" class="nav-btn text-gray-500 hover:text-blue-600 font-medium px-3 py-2" id="nav-projects">Projects</button>
-                            <button onclick="switchTab('tasks')" class="nav-btn text-gray-500 hover:text-blue-600 font-medium px-3 py-2" id="nav-tasks">Tasks</button>
-                        </div>
+                        <span class="text-xl font-bold text-white">Productivity OS</span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span id="user-display" class="text-sm font-medium text-gray-700 hidden sm:block"></span>
-                        <button onclick="handleLogout()" class="text-red-500 hover:text-red-700 text-sm font-medium">Sign Out</button>
+                    
+                    <!-- Navigation Tabs (Added Feature) -->
+                    <div class="hidden md:flex space-x-2">
+                        <button onclick="window.switchTab('dashboard')" id="nav-dashboard" class="px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-gray-800 transition">Dashboard</button>
+                        <button onclick="window.switchTab('projects')" id="nav-projects" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition">Projects</button>
+                        <button onclick="window.switchTab('tasks')" id="nav-tasks" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition">Tasks</button>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <span id="user-display" class="text-gray-300 text-sm hidden sm:block"></span>
+                        <button onclick="window.handleLogout()" class="text-red-400 hover:text-red-300 text-sm font-medium">Sign Out</button>
                     </div>
                 </div>
             </div>
         </nav>
-
-        <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             
             <!-- DASHBOARD TAB -->
-            <div id="tab-dashboard" class="space-y-6">
-                <div class="bg-blue-600 rounded-2xl p-8 text-white flex justify-between items-center">
-                    <div>
-                        <h2 class="text-3xl font-bold mb-2">Hello, <span id="dash-username">User</span>!</h2>
-                        <p class="text-blue-100">You have <span id="active-project-count" class="font-bold">0</span> active projects.</p>
-                    </div>
-                    <button onclick="openModal('project-modal')" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-blue-50 transition shadow-lg">
-                        + New Project
-                    </button>
+            <div id="tab-dashboard">
+                <div class="bg-white rounded-2xl shadow-sm p-8 mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back, <span id="dash-username">User</span></h1>
+                    <p class="text-gray-600">You have <span id="active-project-count" class="font-bold text-blue-600">0</span> active projects.</p>
                 </div>
-                
-                <h3 class="text-xl font-bold text-gray-800 mt-8">Recent Projects</h3>
+
+                <!-- Action Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div onclick="window.openModal('project-modal')" class="bg-blue-50 border border-blue-100 rounded-xl p-6 cursor-pointer hover:shadow-md transition">
+                        <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mb-4"><i class="ph ph-folders text-2xl text-blue-600"></i></div>
+                        <h3 class="text-lg font-bold text-gray-900">Create Project</h3>
+                        <p class="text-gray-600 text-sm">Start a new goal</p>
+                    </div>
+                    <div onclick="window.openModal('task-modal')" class="bg-green-50 border border-green-100 rounded-xl p-6 cursor-pointer hover:shadow-md transition">
+                        <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center mb-4"><i class="ph ph-check-square text-2xl text-green-600"></i></div>
+                        <h3 class="text-lg font-bold text-gray-900">Add Task</h3>
+                        <p class="text-gray-600 text-sm">Track your to-dos</p>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Recent Projects</h3>
                 <div id="dashboard-projects" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Projects injected here -->
-                    <div class="col-span-full text-center py-10 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
-                        No projects yet. Click "+ New Project" to start!
-                    </div>
                 </div>
             </div>
 
             <!-- PROJECTS TAB -->
-            <div id="tab-projects" class="hidden-section space-y-6">
-                <div class="flex justify-between items-center">
+            <div id="tab-projects" class="hidden-section">
+                <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold">All Projects</h2>
-                    <button onclick="openModal('project-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Add Project</button>
+                    <button onclick="window.openModal('project-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-sm">+ Add Project</button>
                 </div>
                 <div id="all-projects-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- Projects injected here -->
@@ -116,14 +172,14 @@
             </div>
 
             <!-- TASKS TAB -->
-            <div id="tab-tasks" class="hidden-section space-y-6">
-                <div class="flex justify-between items-center">
+            <div id="tab-tasks" class="hidden-section">
+                <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold">My Tasks</h2>
-                    <button onclick="openModal('task-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Add Task</button>
+                    <button onclick="window.openModal('task-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-sm">+ Add Task</button>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div id="tasks-list" class="divide-y divide-gray-100">
-                        <div class="p-8 text-center text-gray-500">No tasks found. Create a project first!</div>
+                        <!-- Tasks injected here -->
                     </div>
                 </div>
             </div>
@@ -133,26 +189,24 @@
 
     <!-- MODAL: NEW PROJECT -->
     <div id="project-modal" class="hidden-section fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl w-full max-w-lg p-6">
+        <div class="bg-white rounded-xl w-full max-w-lg p-6 animate-fade-in">
             <h3 class="text-xl font-bold mb-4">Create New Project</h3>
             <form id="project-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-                    <input type="text" id="proj-name" required class="w-full border rounded-lg px-4 py-2">
+                    <input type="text" id="proj-name" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea id="proj-desc" rows="3" class="w-full border rounded-lg px-4 py-2"></textarea>
+                    <textarea id="proj-desc" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                    <div class="flex gap-2">
-                        <input type="color" id="proj-color" value="#3b82f6" class="h-10 w-20 rounded cursor-pointer">
-                    </div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Color Tag</label>
+                    <input type="color" id="proj-color" value="#3b82f6" class="h-10 w-20 rounded cursor-pointer border border-gray-200">
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" onclick="closeModal('project-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Project</button>
+                    <button type="button" onclick="window.closeModal('project-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Create Project</button>
                 </div>
             </form>
         </div>
@@ -160,42 +214,42 @@
 
     <!-- MODAL: NEW TASK -->
     <div id="task-modal" class="hidden-section fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl w-full max-w-lg p-6">
+        <div class="bg-white rounded-xl w-full max-w-lg p-6 animate-fade-in">
             <h3 class="text-xl font-bold mb-4">Create New Task</h3>
             <form id="task-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
-                    <input type="text" id="task-title" required class="w-full border rounded-lg px-4 py-2">
+                    <input type="text" id="task-title" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Project</label>
-                    <select id="task-project-select" class="w-full border rounded-lg px-4 py-2">
+                    <select id="task-project-select" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
                         <!-- Filled by JS -->
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select id="task-status" class="w-full border rounded-lg px-4 py-2">
+                    <select id="task-status" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="Todo">To Do</option>
-                        <option value="In Progress">In Progress</option>
+                        <option value="InProgress">In Progress</option>
                         <option value="Done">Done</option>
                     </select>
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" onclick="closeModal('task-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Task</button>
+                    <button type="button" onclick="window.closeModal('task-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save Task</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
+    <!-- JAVASCRIPT LOGIC (MODULAR SDK) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // YOUR KEYS ARE HERE
+        // --- CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyDcA7kVuRrK9194a7rDSvPM0PgaLHSLkIk",
             authDomain: "khb-todo.firebaseapp.com",
@@ -205,41 +259,34 @@
             appId: "1:1048671093982:web:8cbc4db58f5fe7ec21ae4f"
         };
 
-        // Init Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         let currentUser = null;
         let projectsCache = [];
 
-        // --- AUTH & STATE ---
+        // --- AUTH LOGIC ---
         onAuthStateChanged(auth, (user) => {
             const loader = document.getElementById('loading-overlay');
-            const authScreen = document.getElementById('auth-screen');
-            const mainApp = document.getElementById('main-app');
-
             if (user) {
                 currentUser = user;
                 document.getElementById('user-display').textContent = user.displayName || user.email;
                 document.getElementById('dash-username').textContent = (user.displayName || user.email).split(' ')[0];
                 
-                authScreen.classList.add('hidden-section');
-                mainApp.classList.remove('hidden-section');
+                document.getElementById('auth-screen').classList.add('hidden-section');
+                document.getElementById('main-app').classList.remove('hidden-section');
                 
-                // Start Listening to Data
                 subscribeToProjects();
                 subscribeToTasks();
             } else {
                 currentUser = null;
-                mainApp.classList.add('hidden-section');
-                authScreen.classList.remove('hidden-section');
+                document.getElementById('main-app').classList.add('hidden-section');
+                document.getElementById('auth-screen').classList.remove('hidden-section');
             }
             loader.classList.add('hidden-section');
         });
 
-        // --- DATA FUNCTIONS ---
-
-        // 1. PROJECTS
+        // --- PROJECTS LOGIC ---
         function subscribeToProjects() {
             if (!currentUser) return;
             const q = query(collection(db, "projects"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
@@ -258,7 +305,7 @@
             document.getElementById('active-project-count').textContent = projectsCache.length;
 
             if (projectsCache.length === 0) {
-                const emptyHTML = `<div class="col-span-full text-center py-10 text-gray-500 border border-dashed rounded-xl">No projects found. Create one!</div>`;
+                const emptyHTML = `<div class="col-span-full text-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">No projects yet. Click "Create Project" to start!</div>`;
                 container.innerHTML = emptyHTML;
                 listContainer.innerHTML = emptyHTML;
                 return;
@@ -282,19 +329,13 @@
         function updateProjectSelect() {
             const select = document.getElementById('task-project-select');
             select.innerHTML = projectsCache.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            if (projectsCache.length === 0) select.innerHTML = '<option disabled>Create a project first</option>';
+            if (projectsCache.length === 0) select.innerHTML = '<option disabled selected>Create a project first</option>';
         }
 
-        window.deleteProject = async (id) => {
-            if(confirm("Delete this project?")) await deleteDoc(doc(db, "projects", id));
-        }
-
-        // 2. TASKS
+        // --- TASKS LOGIC ---
         function subscribeToTasks() {
             if (!currentUser) return;
-            // Note: If you see "Index required" in console, click the link provided there.
             const q = query(collection(db, "tasks"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
-            
             onSnapshot(q, (snapshot) => {
                 const tasks = [];
                 snapshot.forEach(doc => tasks.push({ id: doc.id, ...doc.data() }));
@@ -305,132 +346,101 @@
         function renderTasks(tasks) {
             const container = document.getElementById('tasks-list');
             if (tasks.length === 0) {
-                container.innerHTML = '<div class="p-8 text-center text-gray-500">No tasks yet.</div>';
+                container.innerHTML = '<div class="p-8 text-center text-gray-500">No tasks found.</div>';
                 return;
             }
-            
             container.innerHTML = tasks.map(t => {
                 const proj = projectsCache.find(p => p.id === t.projectId);
-                const color = proj ? proj.color : '#ccc';
-                const projName = proj ? proj.name : 'Unknown Project';
-                
                 return `
                 <div class="p-4 flex items-center justify-between hover:bg-gray-50">
                     <div class="flex items-center gap-4">
-                        <div class="w-2 h-12 rounded-full" style="background-color: ${color}"></div>
+                        <div class="w-1 h-10 rounded-full" style="background-color: ${proj ? proj.color : '#cbd5e1'}"></div>
                         <div>
-                            <h4 class="font-bold text-gray-800">${t.title}</h4>
-                            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">${projName}</span>
-                            <span class="text-xs ml-2 px-2 py-1 rounded ${t.status === 'Done' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${t.status}</span>
+                            <h4 class="font-medium text-gray-900">${t.title}</h4>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-xs text-gray-500">${proj ? proj.name : 'Unknown'}</span>
+                                <span class="status-badge status-${t.status.replace(' ', '')}">${t.status}</span>
+                            </div>
                         </div>
                     </div>
-                    <button onclick="window.deleteTask('${t.id}')" class="text-gray-400 hover:text-red-500"><i class="ph ph-trash"></i></button>
+                    <button onclick="window.deleteTask('${t.id}')" class="text-gray-400 hover:text-red-500 transition"><i class="ph ph-trash"></i></button>
                 </div>
             `}).join('');
         }
 
-        window.deleteTask = async (id) => {
-            if(confirm("Delete task?")) await deleteDoc(doc(db, "tasks", id));
-        }
-
+        // --- GLOBAL ACTIONS ---
+        window.deleteProject = async (id) => { if(confirm("Delete project?")) await deleteDoc(doc(db, "projects", id)); }
+        window.deleteTask = async (id) => { if(confirm("Delete task?")) await deleteDoc(doc(db, "tasks", id)); }
+        
         // --- FORM HANDLERS ---
         document.getElementById('project-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('proj-name').value;
-            const desc = document.getElementById('proj-desc').value;
-            const color = document.getElementById('proj-color').value;
-            
             try {
                 await addDoc(collection(db, "projects"), {
                     userId: currentUser.uid,
-                    name, description: desc, color,
+                    name: document.getElementById('proj-name').value,
+                    description: document.getElementById('proj-desc').value,
+                    color: document.getElementById('proj-color').value,
                     createdAt: serverTimestamp()
                 });
-                closeModal('project-modal');
+                window.closeModal('project-modal');
                 e.target.reset();
             } catch (err) { alert(err.message); }
         });
 
         document.getElementById('task-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const title = document.getElementById('task-title').value;
-            const projectId = document.getElementById('task-project-select').value;
-            const status = document.getElementById('task-status').value;
-
-            if(!projectId) return alert("Please create a project first!");
-
+            const pid = document.getElementById('task-project-select').value;
+            if(!pid || pid.includes("Create")) return alert("Please create a project first!");
+            
             try {
                 await addDoc(collection(db, "tasks"), {
                     userId: currentUser.uid,
-                    title, projectId, status,
+                    title: document.getElementById('task-title').value,
+                    projectId: pid,
+                    status: document.getElementById('task-status').value,
                     createdAt: serverTimestamp()
                 });
-                closeModal('task-modal');
+                window.closeModal('task-modal');
                 e.target.reset();
             } catch (err) { alert(err.message); }
         });
 
-        // --- UI FUNCTIONS ---
+        // --- UI HANDLERS ---
+        window.toggleAuthMode = () => {
+            document.getElementById('login-container').classList.toggle('hidden-section');
+            document.getElementById('signup-container').classList.toggle('hidden-section');
+        };
+        
         window.switchTab = (tabId) => {
             ['dashboard', 'projects', 'tasks'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden-section');
-                document.getElementById(`nav-${t}`).classList.remove('text-blue-600', 'bg-blue-50');
-                document.getElementById(`nav-${t}`).classList.add('text-gray-500');
+                document.getElementById(`nav-${t}`).classList.remove('text-white', 'bg-gray-800');
+                document.getElementById(`nav-${t}`).classList.add('text-gray-300');
             });
             document.getElementById(`tab-${tabId}`).classList.remove('hidden-section');
-            document.getElementById(`nav-${tabId}`).classList.add('text-blue-600', 'bg-blue-50');
-            document.getElementById(`nav-${tabId}`).classList.remove('text-gray-500');
+            document.getElementById(`nav-${tabId}`).classList.add('text-white', 'bg-gray-800');
         };
 
         window.openModal = (id) => document.getElementById(id).classList.remove('hidden-section');
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden-section');
-
         window.handleLogout = () => signOut(auth);
+
+        // Login Listeners
+        document.getElementById('google-signin').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
         
-        // Google Login Logic
-        document.getElementById('google-signin').addEventListener('click', async () => {
-            try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
-            catch (err) { alert(err.message); }
-        });
-
-        // Email Login Logic
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+        document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
-            try { await signInWithEmailAndPassword(auth, email, pass); }
-            catch (err) { alert(err.message); }
+            signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
+                .catch(e => alert(e.message));
         });
 
-        let isLogin = true;
-        window.toggleAuthMode = () => {
-            isLogin = !isLogin;
-            const form = document.getElementById('login-form');
-            const btn = form.querySelector('button');
-            const title = document.querySelector('#auth-screen h1');
-            const toggleBtn = document.querySelector('#auth-screen p button');
-            
-            if (isLogin) {
-                title.textContent = "Welcome Back";
-                btn.textContent = "Sign In";
-                toggleBtn.textContent = "Sign Up";
-                form.onsubmit = async (e) => {
-                    e.preventDefault();
-                    signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value).catch(e => alert(e.message));
-                };
-            } else {
-                title.textContent = "Create Account";
-                btn.textContent = "Sign Up";
-                toggleBtn.textContent = "Sign In";
-                form.onsubmit = async (e) => {
-                    e.preventDefault();
-                    createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
-                    .then(cred => updateProfile(cred.user, { displayName: "User" }))
-                    .catch(e => alert(e.message));
-                };
-            }
-        };
-
+        document.getElementById('signup-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-password').value)
+                .then(cred => updateProfile(cred.user, { displayName: "User" }))
+                .catch(e => alert(e.message));
+        });
     </script>
 </body>
 </html>
