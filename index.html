@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity OS - Achieve Your Goals</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        secondary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-dark {
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hidden-section {
+            display: none !important;
+        }
+
+        /* Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-100 flex flex-col items-center justify-center z-50">
+        <div class="spinner mx-auto mb-4"></div>
+        <p id="loading-text" class="text-gray-600">Initializing App...</p>
+        <p id="error-message" class="text-red-500 mt-4 hidden text-sm max-w-md text-center px-4"></p>
+    </div>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 p-4 hidden-section">
+        <div class="max-w-md w-full space-y-8">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary-600 to-secondary-600 mb-4">
+                    <i class="ph ph-rocket-launch text-2xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Productivity OS</h1>
+                <p class="text-gray-600">Your complete solution for achieving goals</p>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="login-container" class="glass rounded-2xl p-8 shadow-xl">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Welcome Back</h2>
+                
+                <button id="google-signin" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 font-medium py-3 px-4 rounded-lg hover:bg-gray-50 transition mb-6">
+                    <i class="ph ph-google-logo text-xl"></i>
+                    Continue with Google
+                </button>
+                
+                <form id="login-form" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="login-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="login-pass" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition">
+                        Sign In
+                    </button>
+                </form>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600">
+                        New here? 
+                        <button onclick="window.showSignup()" class="text-primary-600 font-semibold hover:text-primary-800 ml-1">
+                            Create an account
+                        </button>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-container" class="glass rounded-2xl p-8 shadow-xl hidden-section">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Join Productivity OS</h2>
+                <form id="signup-form" class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="signup-firstname" required placeholder="First Name" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500">
+                        <input type="text" id="signup-lastname" required placeholder="Last Name" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500">
+                    </div>
+                    <input type="email" id="signup-email" required placeholder="Email Address" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500">
+                    <input type="password" id="signup-password" required placeholder="Password" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500">
+                    
+                    <button type="submit" class="w-full bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition">
+                        Sign Up
+                    </button>
+                </form>
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600">
+                        Already have an account? 
+                        <button onclick="window.showLogin()" class="text-primary-600 font-semibold hover:text-primary-800 ml-1">
+                            Sign In
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="main-app" class="hidden-section">
+        <!-- Navigation -->
+        <nav class="glass-dark border-b border-gray-800 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center mr-3">
+                            <i class="ph ph-rocket-launch text-white text-sm"></i>
+                        </div>
+                        <span class="text-xl font-bold text-white">Productivity OS</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="user-name-display" class="text-white text-sm"></span>
+                        <button onclick="window.handleLogout()" class="text-red-400 hover:text-red-300 text-sm font-medium">Sign Out</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Dashboard Content -->
+            <div id="dashboard-view" class="space-y-6">
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
+                    <p class="text-gray-600">Welcome to your productivity center. Create a project to get started.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Project Card Example -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="bg-blue-100 p-2 rounded-lg">
+                                <i class="ph ph-briefcase text-blue-600 text-xl"></i>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Active</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">My First Project</h3>
+                        <p class="text-gray-500 text-sm mb-4">This is a sample project card.</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 45%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>45% Complete</span>
+                            <span>2 Days left</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript Application -->
+    <script type="module">
+        // --- 1. Firebase Imports (Using CDN Links for Browser) ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut,
+            GoogleAuthProvider,
+            signInWithPopup,
+            updateProfile
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            setDoc, 
+            getDoc, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- 2. Configuration (User Provided Keys) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDcA7kVuRrK9194a7rDSvPM0PgaLHSLkIk",
+            authDomain: "khb-todo.firebaseapp.com",
+            projectId: "khb-todo",
+            storageBucket: "khb-todo.firebasestorage.app",
+            messagingSenderId: "1048671093982",
+            appId: "1:1048671093982:web:8cbc4db58f5fe7ec21ae4f"
+        };
+
+        // --- 3. Initialize Firebase ---
+        let app, auth, db;
+
+        try {
+            // Using 'app' variable name as in your snippet
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("Firebase Initialized Successfully");
+        } catch (e) {
+            console.error("Firebase Init Error:", e);
+            document.getElementById('error-message').textContent = "Error initializing Firebase. Please check console (F12) for details.";
+            document.getElementById('error-message').classList.remove('hidden');
+        }
+
+        // --- 4. Global State & DOM Elements ---
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const authScreen = document.getElementById('auth-screen');
+        const mainApp = document.getElementById('main-app');
+        
+        // --- 5. Application Logic ---
+        
+        function initApplication() {
+            if (!auth) {
+                console.error("Auth module not loaded");
+                return;
+            }
+
+            // Check Auth State
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // User is signed in
+                    console.log("User logged in:", user.email);
+                    document.getElementById('user-name-display').textContent = user.displayName || user.email;
+                    showMainApp();
+                } else {
+                    // User is signed out
+                    console.log("User logged out");
+                    showAuthScreen();
+                }
+                // Hide loader in both cases
+                loadingOverlay.classList.add('hidden-section');
+            }, (error) => {
+                console.error("Auth Error:", error);
+                loadingOverlay.classList.add('hidden-section');
+                alert("Authentication System Error: " + error.message);
+            });
+
+            setupEventListeners();
+        }
+
+        function showAuthScreen() {
+            authScreen.classList.remove('hidden-section');
+            mainApp.classList.add('hidden-section');
+        }
+
+        function showMainApp() {
+            authScreen.classList.add('hidden-section');
+            mainApp.classList.remove('hidden-section');
+        }
+
+        function setupEventListeners() {
+            // Login
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-pass').value;
+                
+                try {
+                    setLoading(true, "Signing in...");
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    // onAuthStateChanged will handle the rest
+                } catch (error) {
+                    setLoading(false);
+                    alert("Login Failed: " + error.message);
+                }
+            });
+
+            // Signup
+            document.getElementById('signup-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('signup-email').value;
+                const pass = document.getElementById('signup-password').value;
+                const first = document.getElementById('signup-firstname').value;
+                const last = document.getElementById('signup-lastname').value;
+
+                try {
+                    setLoading(true, "Creating account...");
+                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                    await updateProfile(cred.user, { displayName: `${first} ${last}` });
+                    
+                    // Create User Profile in Firestore
+                    await setDoc(doc(db, "userProfiles", cred.user.uid), {
+                        firstName: first,
+                        lastName: last,
+                        email: email,
+                        createdAt: serverTimestamp()
+                    });
+                    
+                    // onAuthStateChanged will handle the rest
+                } catch (error) {
+                    setLoading(false);
+                    alert("Signup Failed: " + error.message);
+                }
+            });
+
+            // Google Signin
+            document.getElementById('google-signin').addEventListener('click', async () => {
+                const provider = new GoogleAuthProvider();
+                try {
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    alert("Google Signin Error: " + error.message);
+                }
+            });
+        }
+
+        function setLoading(isLoading, text = "Loading...") {
+            const textEl = document.getElementById('loading-text');
+            if (isLoading) {
+                textEl.textContent = text;
+                loadingOverlay.classList.remove('hidden-section');
+            } else {
+                loadingOverlay.classList.add('hidden-section');
+            }
+        }
+
+        // --- 6. Window Exports (for onclick handlers in HTML) ---
+        window.showSignup = () => {
+            document.getElementById('login-container').classList.add('hidden-section');
+            document.getElementById('signup-container').classList.remove('hidden-section');
+        };
+
+        window.showLogin = () => {
+            document.getElementById('signup-container').classList.add('hidden-section');
+            document.getElementById('login-container').classList.remove('hidden-section');
+        };
+
+        window.handleLogout = async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Logout failed", error);
+            }
+        };
+
+        // --- 7. Start App ---
+        // Ensure DOM is ready before starting
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApplication);
+        } else {
+            initApplication();
+        }
+
+    </script>
+</body>
+</html>
