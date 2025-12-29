@@ -14,6 +14,15 @@
                 extend: {
                     colors: {
                         slate: { 850: '#151f32', 900: '#0f172a' }
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s ease-out'
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' }
+                        }
                     }
                 }
             }
@@ -23,7 +32,7 @@
     <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Utilities -->
+    <!-- Effects & Utilities -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -54,7 +63,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Sidebar Transitions */
-        #sidebar { transition: transform 0.3s ease-in-out, width 0.3s ease-in-out; }
+        #sidebar { transition: transform 0.3s ease-in-out, margin-left 0.3s ease-in-out; }
         
         /* Mobile Overlay */
         .mobile-overlay {
@@ -69,17 +78,17 @@
             
             #detail-panel { position: fixed; z-index: 50; width: 100%; height: 100%; top:0; right:0; transform: translateX(100%); transition: transform 0.3s; }
             #detail-panel.open { transform: translateX(0); }
-            
-            /* Floating Action Button (Mobile Only) */
-            .fab-mobile { display: flex; }
-        }
-        @media (min-width: 769px) {
-            .fab-mobile { display: none; }
         }
 
         /* Dropdown */
         .dropdown-menu { opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.2s; }
         .dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        
+        /* Priority Colors */
+        .priority-dot.Critical { background-color: #ef4444; }
+        .priority-dot.High { background-color: #f97316; }
+        .priority-dot.Medium { background-color: #3b82f6; }
+        .priority-dot.Low { background-color: #10b981; }
     </style>
 </head>
 
@@ -91,7 +100,7 @@
         <p class="text-slate-500 font-medium">Loading Workspace...</p>
     </div>
 
-    <!-- AUTH -->
+    <!-- AUTH SCREEN -->
     <div id="auth-screen" class="fixed inset-0 z-[90] bg-white dark:bg-slate-900 flex items-center justify-center p-4">
         <div class="w-full max-w-md text-center">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 text-white mb-6 shadow-xl shadow-blue-500/20">
@@ -127,15 +136,15 @@
         <div id="mobile-overlay" class="mobile-overlay md:hidden" onclick="toggleSidebar()"></div>
 
         <!-- SIDEBAR -->
-        <aside id="sidebar" class="w-72 bg-white dark:bg-slate-850 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 transition-colors">
+        <aside id="sidebar" class="w-72 bg-white dark:bg-slate-850 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 transition-all z-50">
             <!-- Sidebar Header -->
             <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white"><i class="ph ph-check-fat weight-bold"></i></div>
                     <span class="font-bold text-xl tracking-tight dark:text-white">Taska</span>
                 </div>
-                <!-- Collapse Button (Mobile Close) -->
-                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-red-500"><i class="ph ph-x text-xl"></i></button>
+                <!-- Close Sidebar (Mobile) -->
+                <button onclick="toggleSidebar()" class="md:hidden p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg"><i class="ph ph-x text-xl"></i></button>
             </div>
 
             <!-- Profile -->
@@ -155,7 +164,11 @@
                 <button onclick="switchView('important')" id="nav-important" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"><i class="ph ph-star text-lg"></i> Important</button>
                 <button onclick="switchView('all')" id="nav-all" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"><i class="ph ph-infinity text-lg"></i> All Tasks</button>
                 <button onclick="switchView('board')" id="nav-board" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"><i class="ph ph-kanban text-lg"></i> Board View</button>
-                <div class="mt-8 mb-2 px-3 flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider"><span>Projects</span><button onclick="openModal('project-modal')" class="hover:text-blue-600 text-lg"><i class="ph ph-plus-circle"></i></button></div>
+                
+                <div class="mt-8 mb-2 px-3 flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <span>Projects</span>
+                    <button onclick="openModal('project-modal')" class="hover:text-blue-600 text-lg transition"><i class="ph ph-plus-circle"></i></button>
+                </div>
                 <div id="project-list-sidebar" class="space-y-1"></div>
             </nav>
             
@@ -170,8 +183,8 @@
             <!-- Header -->
             <header class="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur z-20 sticky top-0">
                 <div class="flex items-center gap-4">
-                    <!-- Collapse Sidebar Button (Desktop & Mobile) -->
-                    <button class="text-slate-500 hover:text-blue-600 transition" onclick="toggleSidebar()">
+                    <!-- Sidebar Toggle (Collapses/Expands) -->
+                    <button class="text-slate-500 hover:text-blue-600 transition p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" onclick="toggleSidebar()">
                         <i class="ph ph-list text-2xl"></i>
                     </button>
                     <div>
@@ -188,20 +201,29 @@
             <!-- TASKS LIST -->
             <div id="view-list" class="flex-1 overflow-y-auto p-6 md:p-10 relative">
                 
-                <!-- Desktop Add Task Bar -->
-                <div class="hidden md:flex bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-3 items-center gap-4 mb-8 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900 focus-within:border-blue-400 transition-all">
-                    <i class="ph ph-plus text-2xl text-slate-300 ml-2"></i>
-                    <input type="text" id="quick-add-input" placeholder="Add a new task..." class="flex-1 bg-transparent outline-none text-slate-700 dark:text-slate-200 placeholder-slate-400" onkeydown="handleQuickAdd(event)">
-                    <div class="flex gap-2 pr-2">
-                         <button class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400" onclick="this.classList.toggle('text-yellow-500')" id="quick-add-star"><i class="ph ph-star-fill"></i></button>
-                         <button class="px-3 py-1.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition" onclick="triggerQuickAdd()">Add</button>
+                <!-- Desktop Quick Add Bar -->
+                <div class="hidden md:flex bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-2 items-center gap-3 mb-8 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900 focus-within:border-blue-400 transition-all">
+                    <i class="ph ph-plus text-xl text-slate-300 ml-3"></i>
+                    <input type="text" id="quick-add-input" placeholder="Add a new task..." class="flex-1 bg-transparent outline-none text-slate-700 dark:text-slate-200 placeholder-slate-400 h-10" onkeydown="handleQuickAdd(event)">
+                    
+                    <!-- Desktop Quick Metadata -->
+                    <div class="flex items-center gap-2 border-l border-slate-100 dark:border-slate-700 pl-3">
+                         <input type="date" id="quick-add-date" class="bg-transparent text-xs text-slate-500 outline-none w-28">
+                         <select id="quick-add-priority" class="bg-transparent text-xs text-slate-500 outline-none w-20">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                         </select>
+                         <button class="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition" onclick="this.classList.toggle('text-yellow-500')" id="quick-add-star"><i class="ph ph-star-fill text-lg"></i></button>
                     </div>
+                    <button class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition" onclick="triggerQuickAdd()">Add Task</button>
                 </div>
 
                 <div id="task-list-container" class="space-y-2 pb-24"></div>
 
-                <!-- Mobile Floating Action Button -->
-                <button onclick="focusMobileAdd()" class="fab-mobile fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-500/40 flex items-center justify-center text-3xl hover:scale-110 active:scale-95 transition z-40">
+                <!-- Floating Action Button (Universal) -->
+                <button onclick="openAddModal()" class="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-500/40 flex items-center justify-center text-3xl hover:scale-110 active:scale-95 transition z-40">
                     <i class="ph ph-plus"></i>
                 </button>
             </div>
@@ -216,10 +238,10 @@
             </div>
         </main>
 
-        <!-- DETAIL PANEL -->
+        <!-- DETAIL PANEL (Edit Task) -->
         <aside id="detail-panel" class="w-96 bg-white dark:bg-slate-850 border-l border-slate-200 dark:border-slate-800 hidden lg:flex flex-col shadow-2xl z-40 transition-transform">
              <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800">
-                <span class="font-bold text-sm text-slate-400 uppercase">Task Details</span>
+                <span class="font-bold text-sm text-slate-400 uppercase">Edit Task</span>
                 <button onclick="closeDetail()" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
             </div>
             <div id="active-detail" class="flex-col h-full hidden-section">
@@ -237,7 +259,7 @@
                     </div>
                     <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                          <div class="flex items-center gap-3"><i class="ph ph-calendar-blank text-xl text-slate-400"></i><input type="date" id="detail-due" class="bg-transparent outline-none text-sm text-slate-600 dark:text-slate-300 w-full" onchange="updateTaskDetail('dueDate', this.value)"></div>
-                         <div class="flex items-center gap-3"><i class="ph ph-flag text-xl text-slate-400"></i><select id="detail-priority" class="bg-transparent outline-none text-sm text-slate-600 dark:text-slate-300 w-full" onchange="updateTaskDetail('priority', this.value)"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></div>
+                         <div class="flex items-center gap-3"><i class="ph ph-flag text-xl text-slate-400"></i><select id="detail-priority" class="bg-transparent outline-none text-sm text-slate-600 dark:text-slate-300 w-full" onchange="updateTaskDetail('priority', this.value)"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option><option value="Critical">Critical</option></select></div>
                          <div class="flex items-center gap-3"><i class="ph ph-folder text-xl text-slate-400"></i><select id="detail-project" class="bg-transparent outline-none text-sm text-slate-600 dark:text-slate-300 w-full" onchange="updateTaskDetail('projectId', this.value)"></select></div>
                     </div>
                     <textarea id="detail-notes" class="w-full h-32 bg-slate-50 dark:bg-slate-800 rounded-xl p-4 text-sm resize-none outline-none text-slate-700 dark:text-slate-300" placeholder="Add notes..." onchange="updateTaskDetail('remarks', this.value)"></textarea>
@@ -248,16 +270,63 @@
             </div>
         </aside>
 
-        <!-- ADD TASK MODAL (Mobile) -->
-        <div id="mobile-add-modal" class="hidden-section fixed inset-0 bg-black/50 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <!-- ADD TASK MODAL (Universal) -->
+        <div id="add-modal" class="hidden-section fixed inset-0 bg-black/50 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
             <div class="bg-white dark:bg-slate-800 w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl animate-slide-up">
                 <div class="flex justify-between mb-4">
                     <h3 class="font-bold text-lg dark:text-white">New Task</h3>
-                    <button onclick="closeModal('mobile-add-modal')" class="text-slate-400"><i class="ph ph-x text-xl"></i></button>
+                    <button onclick="closeModal('add-modal')" class="text-slate-400"><i class="ph ph-x text-xl"></i></button>
                 </div>
-                <input type="text" id="mobile-add-input" placeholder="What needs to be done?" class="w-full text-lg bg-transparent outline-none border-b border-slate-200 dark:border-slate-700 pb-2 mb-4 dark:text-white" onkeydown="if(event.key==='Enter') triggerMobileAdd()">
+                
+                <input type="text" id="modal-add-title" placeholder="What needs to be done?" class="w-full text-lg bg-transparent outline-none border-b border-slate-200 dark:border-slate-700 pb-2 mb-6 dark:text-white" onkeydown="if(event.key==='Enter') triggerModalAdd()">
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="text-xs text-slate-400 font-bold uppercase block mb-1">Due Date</label>
+                        <input type="date" id="modal-add-date" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm dark:text-white">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 font-bold uppercase block mb-1">Priority</label>
+                        <select id="modal-add-priority" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm dark:text-white">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                         <label class="text-xs text-slate-400 font-bold uppercase block mb-1">Project</label>
+                         <select id="modal-add-project" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm dark:text-white">
+                             <option value="">No Project</option>
+                             <!-- JS Filled -->
+                         </select>
+                    </div>
+                </div>
+
                 <div class="flex justify-end gap-3">
-                    <button onclick="triggerMobileAdd()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold">Save</button>
+                    <button onclick="triggerModalAdd()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold w-full sm:w-auto">Save Task</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- EDIT PROJECT MODAL -->
+        <div id="edit-project-modal" class="hidden-section fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl">
+                <h3 class="font-bold text-lg mb-4 dark:text-white">Edit Project</h3>
+                <input type="hidden" id="edit-proj-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs text-slate-400 font-bold uppercase block mb-1">Name</label>
+                        <input type="text" id="edit-proj-name" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 font-bold uppercase block mb-1">Color</label>
+                        <input type="color" id="edit-proj-color" class="w-full h-10 rounded-lg cursor-pointer">
+                    </div>
+                </div>
+                <div class="flex gap-2 mt-6">
+                    <button onclick="deleteProject()" class="flex-1 py-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg">Delete</button>
+                    <button onclick="saveProjectEdit()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg">Save</button>
                 </div>
             </div>
         </div>
@@ -282,7 +351,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let currentUser = null, tasks = [], projects = [], currentView = 'myday', selectedTaskId = null;
+        let currentUser = null, tasks = [], projects = [], currentView = 'myday', selectedTaskId = null, editingProjectId = null;
 
         // AUTH
         onAuthStateChanged(auth, async (user) => {
@@ -304,7 +373,7 @@
         function subscribeData() {
             onSnapshot(query(collection(db, "projects"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc")), (s) => {
                 projects = s.docs.map(d => ({id: d.id, ...d.data()}));
-                renderSidebarProjects(); renderDetailSelect(); refreshView();
+                renderSidebarProjects(); renderDetailSelect(); renderModalSelect(); refreshView();
             });
             onSnapshot(query(collection(db, "tasks"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc")), (s) => {
                 tasks = s.docs.map(d => ({id: d.id, ...d.data()}));
@@ -346,6 +415,7 @@
             const sel = t.id === selectedTaskId ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300';
             const doneSteps = (t.steps||[]).filter(s=>s.done).length;
             const stepText = (t.steps||[]).length ? `${doneSteps}/${t.steps.length}` : '';
+            const priorityColor = t.priority ? `priority-dot ${t.priority}` : '';
 
             return `
             <div onclick="selectTask('${t.id}')" class="bg-white dark:bg-slate-800 border rounded-xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer transition shadow-sm relative group ${sel}">
@@ -353,15 +423,15 @@
                     <i class="ph ph-check text-xs"></i>
                 </button>
                 
-                <!-- Columns Layout -->
-                <div class="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                <div class="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-12 gap-1 sm:gap-4 items-center">
                     <div class="sm:col-span-6 font-medium ${isDone ? 'line-through text-slate-400' : 'text-slate-800 dark:text-slate-200'} truncate">${t.title}</div>
                     <div class="sm:col-span-2 text-xs text-slate-500 flex items-center gap-1">${t.dueDate ? `<i class="ph ph-calendar"></i> ${t.dueDate}` : ''}</div>
                     <div class="sm:col-span-2 text-xs text-slate-500 flex items-center gap-1">${proj ? `<span class="w-2 h-2 rounded-full" style="background:${proj.color}"></span> ${proj.name}` : ''}</div>
-                    <div class="sm:col-span-2 text-xs text-slate-500 flex items-center gap-1">${t.priority!=='Medium' ? `<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300">${t.priority}</span>` : ''}</div>
+                    <div class="sm:col-span-2 text-xs text-slate-500 flex items-center gap-1">
+                        ${t.priority!=='Medium' ? `<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300">${t.priority}</span>` : ''}
+                    </div>
                 </div>
 
-                <!-- Action Menu (3 Dots) -->
                 <div class="relative">
                     <button onclick="event.stopPropagation(); toggleDropdown('${t.id}')" class="p-2 text-slate-400 hover:text-blue-600 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"><i class="ph ph-dots-three-vertical font-bold"></i></button>
                     <div id="dropdown-${t.id}" class="dropdown-menu absolute right-0 top-8 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-lg z-20">
@@ -378,95 +448,118 @@
             const overlay = document.getElementById('mobile-overlay');
             sb.classList.toggle('open');
             overlay.classList.toggle('open');
-            // Desktop Collapse logic
             if(window.innerWidth > 768) {
                 if(sb.style.marginLeft === '-18rem') sb.style.marginLeft = '0';
                 else sb.style.marginLeft = '-18rem';
             }
         };
 
-        window.focusMobileAdd = () => {
-            document.getElementById('mobile-add-modal').classList.remove('hidden-section');
-            setTimeout(() => document.getElementById('mobile-add-input').focus(), 100);
+        window.openAddModal = () => {
+            document.getElementById('add-modal').classList.remove('hidden-section');
+            // Pre-select project if viewing project
+            if(currentView.length > 15) document.getElementById('modal-add-project').value = currentView;
+            setTimeout(() => document.getElementById('modal-add-title').focus(), 100);
         };
 
         window.triggerQuickAdd = async () => {
-            const inp = document.getElementById('quick-add-input');
-            await addTask(inp.value);
-            inp.value = '';
+            const title = document.getElementById('quick-add-input').value;
+            const date = document.getElementById('quick-add-date').value;
+            const priority = document.getElementById('quick-add-priority').value;
+            const isImp = document.getElementById('quick-add-star').classList.contains('text-yellow-500');
+            const pid = (currentView.length > 15) ? currentView : '';
+            
+            if(!title.trim()) return;
+            await addDoc(collection(db, "tasks"), {
+                userId: currentUser.uid, title, status: 'Todo', priority, dueDate: date || null,
+                isImportant: isImp, projectId: pid, isMyDay: currentView === 'myday', createdAt: serverTimestamp(), steps: []
+            });
+            document.getElementById('quick-add-input').value = '';
         };
 
-        window.triggerMobileAdd = async () => {
-            const inp = document.getElementById('mobile-add-input');
-            await addTask(inp.value);
-            inp.value = '';
-            closeModal('mobile-add-modal');
+        window.triggerModalAdd = async () => {
+            const title = document.getElementById('modal-add-title').value;
+            const date = document.getElementById('modal-add-date').value;
+            const priority = document.getElementById('modal-add-priority').value;
+            const project = document.getElementById('modal-add-project').value;
+            
+            if(!title.trim()) return;
+            await addDoc(collection(db, "tasks"), {
+                userId: currentUser.uid, title, status: 'Todo', priority, dueDate: date || null,
+                isImportant: false, projectId: project || '', isMyDay: false, createdAt: serverTimestamp(), steps: []
+            });
+            document.getElementById('modal-add-title').value = '';
+            closeModal('add-modal');
         };
 
         window.handleQuickAdd = (e) => { if(e.key === 'Enter') triggerQuickAdd(); };
 
-        async function addTask(title) {
-            if(!title.trim()) return;
-            const isImp = document.getElementById('quick-add-star').classList.contains('text-yellow-500');
-            const pid = (currentView.length > 15) ? currentView : '';
-            await addDoc(collection(db, "tasks"), {
-                userId: currentUser.uid, title, status: 'Todo', priority: 'Medium',
-                isImportant: isImp, projectId: pid, isMyDay: currentView === 'myday', createdAt: serverTimestamp()
-            });
-        }
-
         window.toggleDropdown = (id) => {
-            document.querySelectorAll('.dropdown-menu').forEach(d => {
-                if(d.id !== `dropdown-${id}`) d.classList.remove('show');
-            });
+            document.querySelectorAll('.dropdown-menu').forEach(d => { if(d.id !== `dropdown-${id}`) d.classList.remove('show'); });
             const menu = document.getElementById(`dropdown-${id}`);
             if(menu) menu.classList.toggle('show');
         };
-        // Close dropdowns on click outside
-        window.onclick = (e) => {
-            if (!e.target.closest('.relative')) document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
-        };
+        window.onclick = (e) => { if (!e.target.closest('.relative')) document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show')); };
 
         window.switchView = (v) => { currentView = v; selectedTaskId = null; closeDetail(); refreshView(); if(window.innerWidth < 768 && document.getElementById('sidebar').classList.contains('open')) toggleSidebar(); };
         window.selectTask = (id) => { 
             selectedTaskId = id; 
             document.getElementById('active-detail').classList.remove('hidden-section');
-            document.getElementById('detail-panel').classList.remove('hidden-section'); // Show for mobile
-            document.getElementById('detail-panel').classList.add('open'); // Slide in
+            document.getElementById('detail-panel').classList.remove('hidden-section'); 
+            document.getElementById('detail-panel').classList.add('open'); 
             refreshView(); 
             populateDetail(tasks.find(t=>t.id===id));
         };
-        window.closeDetail = () => { 
-            selectedTaskId = null; 
-            document.getElementById('active-detail').classList.add('hidden-section'); 
-            document.getElementById('detail-panel').classList.remove('open');
-            refreshView(); 
-        };
+        window.closeDetail = () => { selectedTaskId = null; document.getElementById('active-detail').classList.add('hidden-section'); document.getElementById('detail-panel').classList.remove('open'); refreshView(); };
 
-        window.toggleStatus = async (id, s) => { 
-            const n = s === 'Done' ? 'Todo' : 'Done'; 
-            if(n==='Done') confetti({particleCount: 40, spread: 50, origin: {y: 0.7}});
-            await updateDoc(doc(db, "tasks", id), { status: n }); 
-        };
-        
+        window.toggleStatus = async (id, s) => { const n = s === 'Done' ? 'Todo' : 'Done'; if(n==='Done') confetti({particleCount: 40, spread: 50, origin: {y: 0.7}}); await updateDoc(doc(db, "tasks", id), { status: n }); };
         window.deleteTaskById = async (id) => { if(confirm("Delete task?")) await deleteDoc(doc(db, "tasks", id)); };
         window.deleteTask = () => deleteTaskById(selectedTaskId);
 
         // Sidebar Projects
         function renderSidebarProjects() {
             document.getElementById('project-list-sidebar').innerHTML = projects.map(p => `
-                <button onclick="switchView('${p.id}')" id="nav-${p.id}" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                    <span class="w-2.5 h-2.5 rounded-full" style="background:${p.color}"></span> ${p.name}
-                </button>`).join('');
+                <div class="group flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer" onclick="switchView('${p.id}')">
+                    <div class="flex items-center gap-3">
+                         <span class="w-2.5 h-2.5 rounded-full" style="background:${p.color}"></span>
+                         <span class="text-sm font-medium text-slate-600 dark:text-slate-300 ${currentView===p.id?'text-blue-600':''}">${p.name}</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); editProject('${p.id}')" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-600"><i class="ph ph-gear-six"></i></button>
+                </div>`).join('');
         }
         window.renderDetailSelect = () => { document.getElementById('detail-project').innerHTML = '<option value="">No Project</option>' + projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); }
+        window.renderModalSelect = () => { document.getElementById('modal-add-project').innerHTML = '<option value="">No Project</option>' + projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); }
 
-        // Detail Panel Population
+        // Project Editing
+        window.editProject = (id) => {
+            const p = projects.find(x => x.id === id);
+            editingProjectId = id;
+            document.getElementById('edit-proj-id').value = id;
+            document.getElementById('edit-proj-name').value = p.name;
+            document.getElementById('edit-proj-color').value = p.color;
+            openModal('edit-project-modal');
+        };
+        window.saveProjectEdit = async () => {
+            if(!editingProjectId) return;
+            const name = document.getElementById('edit-proj-name').value;
+            const color = document.getElementById('edit-proj-color').value;
+            await updateDoc(doc(db, "projects", editingProjectId), { name, color });
+            closeModal('edit-project-modal');
+        };
+        window.deleteProject = async () => {
+            if(!editingProjectId || !confirm("Delete project and all its tasks?")) return;
+            // Delete tasks first (Optional but good practice)
+            const tasksToDelete = tasks.filter(t => t.projectId === editingProjectId);
+            tasksToDelete.forEach(async t => await deleteDoc(doc(db, "tasks", t.id)));
+            await deleteDoc(doc(db, "projects", editingProjectId));
+            closeModal('edit-project-modal');
+            switchView('all');
+        };
+
+        // Detail Panel
         function populateDetail(t) {
             if(!t) return;
-            const titleEl = document.getElementById('detail-title');
-            titleEl.value = t.title;
-            titleEl.onchange = () => updateDoc(doc(db, "tasks", t.id), {title: titleEl.value});
+            document.getElementById('detail-title').value = t.title;
+            document.getElementById('detail-title').onchange = () => updateDoc(doc(db, "tasks", t.id), {title: document.getElementById('detail-title').value});
             document.getElementById('detail-check').className = `mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition text-white ${t.status === 'Done' ? 'bg-blue-500 border-blue-500' : 'border-slate-300 dark:border-slate-600'}`;
             document.getElementById('detail-star').className = t.isImportant ? "text-yellow-400 text-2xl" : "text-slate-300 hover:text-yellow-400 text-2xl";
             document.getElementById('detail-due').value = t.dueDate || '';
@@ -484,7 +577,6 @@
                 </div>`).join('');
         }
 
-        // Step Logic
         window.addStep = async () => { const t = tasks.find(x=>x.id===selectedTaskId); await updateDoc(doc(db, "tasks", selectedTaskId), {steps: [...(t.steps||[]), {text: "", done: false}]}); };
         window.toggleStep = async (idx) => { const t = tasks.find(x=>x.id===selectedTaskId); const s=[...t.steps]; s[idx].done=!s[idx].done; await updateDoc(doc(db, "tasks", selectedTaskId), {steps: s}); };
         window.updateStepText = async (idx, txt) => { const t = tasks.find(x=>x.id===selectedTaskId); const s=[...t.steps]; s[idx].text=txt; await updateDoc(doc(db, "tasks", selectedTaskId), {steps: s}); };
@@ -504,12 +596,9 @@
         document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value).catch(e=>alert(e.message)); });
         document.getElementById('signup-form').addEventListener('submit', async (e) => { e.preventDefault(); try{ const c = await createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-pass').value); await updateProfile(c.user, {displayName: document.getElementById('signup-name').value}); }catch(e){alert(e.message);} });
         document.getElementById('project-form').addEventListener('submit', async (e) => { e.preventDefault(); await addDoc(collection(db, "projects"), { userId: currentUser.uid, name: document.getElementById('proj-name').value, color: document.getElementById('proj-color').value, createdAt: serverTimestamp() }); e.target.reset(); closeModal('project-modal'); });
+        document.getElementById('profile-form').addEventListener('submit', async (e) => { e.preventDefault(); await updateProfile(currentUser, {displayName: document.getElementById('edit-name').value}); await setDoc(doc(db, "userProfiles", currentUser.uid), { bio: document.getElementById('edit-bio').value, interests: document.getElementById('edit-interests').value }, {merge:true}); closeModal('profile-modal'); document.getElementById('sidebar-name').textContent = document.getElementById('edit-name').value; });
         
-        // Dark Mode
-        window.toggleDarkMode = () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        };
+        window.toggleDarkMode = () => { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); };
         if(localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
     </script>
 </body>
