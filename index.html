@@ -3,253 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productivity OS - Achieve Your Goals</title>
+    <title>Productivity OS Pro</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
-        :root { --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
         .hidden-section { display: none !important; }
         
-        .nav-active { color: #2563eb; background-color: #eff6ff; }
-        
-        .spinner {
-            border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6;
-            border-radius: 50%; width: 24px; height: 24px;
-            animation: spin 1s linear infinite;
-        }
+        /* Animations */
+        .check-circle { transition: all 0.2s; }
+        .check-circle:hover { background-color: #eff6ff; border-color: #3b82f6; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Status Badges */
-        .status-badge { padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; }
-        .status-Todo { background: #f3f4f6; color: #374151; }
-        .status-InProgress { background: #dbeafe; color: #1e40af; }
-        .status-Done { background: #dcfce7; color: #166534; }
+        
+        /* Sidebar transition */
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        @media (max-width: 768px) { #sidebar { transform: translateX(-100%); position: fixed; height: 100%; z-index: 40; } #sidebar.open { transform: translateX(0); } }
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-900 min-h-screen">
+<body class="bg-white text-gray-900 h-screen flex flex-col">
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
-        <div class="text-center">
-            <div class="spinner mx-auto mb-4"></div>
-            <p class="text-gray-600">Loading Workspace...</p>
+    <!-- LOADING -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center">
+        <div class="spinner mb-4"></div>
+        <p class="text-gray-500 font-medium">Loading Workspace...</p>
+    </div>
+
+    <!-- AUTH SCREEN -->
+    <div id="auth-screen" class="fixed inset-0 z-[90] bg-gray-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-8 rounded-2xl shadow-xl text-center">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3">
+                <i class="ph ph-check-fat text-3xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Productivity OS</h1>
+            <button id="google-signin" class="w-full bg-white border border-gray-200 mt-8 py-3 rounded-xl flex items-center justify-center gap-3 hover:shadow-md transition">
+                <i class="ph ph-google-logo text-xl text-red-500"></i> Continue with Google
+            </button>
+            <div class="relative my-6"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-100"></div></div><div class="relative flex justify-center text-xs text-gray-400 bg-white px-2">OR EMAIL</div></div>
+            <form id="login-form" class="space-y-4">
+                <input type="email" id="login-email" placeholder="Email" class="w-full px-4 py-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="password" id="login-pass" placeholder="Password" class="w-full px-4 py-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700">Sign In</button>
+            </form>
+            <p class="mt-4 text-sm text-gray-500"><button onclick="toggleAuthMode()" class="text-blue-600 font-bold">Create Account</button></p>
+            <form id="signup-form" class="space-y-4 hidden-section mt-4">
+                <input type="text" id="signup-name" placeholder="Name" class="w-full px-4 py-3 bg-gray-50 rounded-xl outline-none">
+                <input type="email" id="signup-email" placeholder="Email" class="w-full px-4 py-3 bg-gray-50 rounded-xl outline-none">
+                <input type="password" id="signup-pass" placeholder="Password" class="w-full px-4 py-3 bg-gray-50 rounded-xl outline-none">
+                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl">Sign Up</button>
+            </form>
         </div>
     </div>
 
-    <!-- AUTHENTICATION SCREEN -->
-    <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-        <div class="max-w-md w-full space-y-8">
-            <div class="glass rounded-2xl p-10 shadow-xl">
-                <div class="text-center mb-8">
-                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 mb-4">
-                        <i class="ph ph-rocket-launch text-3xl text-white"></i>
-                    </div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Productivity OS</h1>
-                    <p class="text-gray-600">Your complete solution for achieving goals</p>
+    <!-- APP LAYOUT -->
+    <div id="main-app" class="flex h-full hidden-section relative">
+        
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
+            <div class="p-4 flex items-center gap-3 mb-2 cursor-pointer hover:bg-gray-100 m-2 rounded-lg transition" onclick="openModal('profile-modal')">
+                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm" id="sidebar-avatar">U</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-900 truncate" id="sidebar-name">User</p>
+                    <p class="text-xs text-gray-500">View Profile</p>
                 </div>
-                
-                <!-- Google Login (Restored Feature) -->
-                <button id="google-signin" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 font-medium py-3 px-4 rounded-lg hover:bg-gray-50 transition mb-6">
-                    <i class="ph ph-google-logo text-xl"></i>
-                    Continue with Google
+            </div>
+
+            <nav class="flex-1 overflow-y-auto px-2 space-y-1">
+                <button onclick="switchView('myday')" id="nav-myday" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-white hover:shadow-sm transition">
+                    <i class="ph ph-sun text-lg text-gray-400"></i> My Day
+                </button>
+                <button onclick="switchView('important')" id="nav-important" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-white hover:shadow-sm transition">
+                    <i class="ph ph-star text-lg text-gray-400"></i> Important
+                </button>
+                <button onclick="switchView('all')" id="nav-all" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-white hover:shadow-sm transition">
+                    <i class="ph ph-house text-lg text-blue-600"></i> All Tasks
+                </button>
+                 <button onclick="switchView('insights')" id="nav-insights" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-white hover:shadow-sm transition">
+                    <i class="ph ph-chart-pie-slice text-lg text-purple-600"></i> Insights
                 </button>
 
-                <div class="relative my-6">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
-                    <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">Or use email</span></div>
+                <div class="pt-4 pb-2 px-3 flex justify-between text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    <span>Projects</span>
+                    <button onclick="openModal('project-modal')" class="hover:text-blue-600"><i class="ph ph-plus"></i></button>
                 </div>
-                
-                <!-- Login Form -->
-                <div id="login-container">
-                    <form id="login-form" class="space-y-5">
-                        <input type="email" id="login-email" placeholder="Email Address" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-                        <input type="password" id="login-pass" placeholder="Password" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition">Sign In</button>
-                    </form>
-                    <p class="mt-6 text-center text-gray-600">
-                        New here? <button onclick="window.toggleAuthMode()" class="text-blue-600 font-semibold hover:text-blue-800 ml-1">Create an account</button>
-                    </p>
+                <div id="project-list-sidebar" class="space-y-1"></div>
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 flex flex-col relative bg-white min-w-0">
+            <!-- Header -->
+            <header class="h-16 border-b border-gray-100 flex items-center justify-between px-6 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+                <div class="flex items-center gap-3">
+                    <button class="md:hidden text-gray-500" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="ph ph-list text-2xl"></i></button>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2" id="header-title">All Tasks</h2>
+                        <p class="text-xs text-gray-500" id="header-subtitle">Overview</p>
+                    </div>
                 </div>
+                <!-- View-Specific Actions -->
+                <div id="header-actions" class="flex items-center gap-2">
+                    <!-- Injected by JS -->
+                </div>
+            </header>
+
+            <!-- TASKS VIEW -->
+            <div id="view-tasks" class="flex-1 overflow-y-auto p-6">
+                <!-- Quick Add -->
+                <div class="mb-6 bg-gray-50 rounded-xl p-2 flex items-center gap-3 border border-transparent focus-within:border-blue-500 focus-within:bg-white focus-within:shadow-md transition-all">
+                    <i class="ph ph-plus text-xl text-gray-400 ml-2"></i>
+                    <input type="text" id="quick-add-input" placeholder="Add a task" class="flex-1 bg-transparent outline-none h-8" onkeydown="handleQuickAdd(event)">
+                    <button class="p-1.5 text-gray-400 hover:text-yellow-500 rounded" onclick="this.classList.toggle('text-yellow-500')" id="quick-add-star"><i class="ph ph-star"></i></button>
+                </div>
+
+                <div id="task-list-active" class="space-y-1 pb-8"></div>
                 
-                <!-- Signup Form -->
-                <div id="signup-container" class="hidden-section">
-                    <form id="signup-form" class="space-y-5">
-                        <input type="email" id="signup-email" placeholder="Email Address" required class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-                        <input type="password" id="signup-password" placeholder="Password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition">Create Account</button>
-                    </form>
-                    <p class="mt-6 text-center text-gray-600">
-                        Already have an account? <button onclick="window.toggleAuthMode()" class="text-blue-600 font-semibold hover:text-blue-800 ml-1">Sign In</button>
-                    </p>
+                <div id="completed-section" class="hidden-section">
+                    <h3 class="text-sm font-semibold text-gray-500 mb-2 mt-8">Completed <span id="completed-count" class="bg-gray-100 px-2 rounded text-xs">0</span></h3>
+                    <div id="task-list-completed" class="space-y-1 opacity-60"></div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- MAIN APPLICATION -->
-    <div id="main-app" class="hidden-section">
-        <!-- Navbar -->
-        <nav class="bg-gray-900 border-b border-gray-800 sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center mr-3">
-                            <i class="ph ph-rocket-launch text-white text-sm"></i>
+            <!-- INSIGHTS VIEW -->
+            <div id="view-insights" class="flex-1 overflow-y-auto p-6 hidden-section">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+                        <h3 class="font-bold text-gray-700 mb-4">Task Completion</h3>
+                        <div class="h-48 w-48"><canvas id="productivityChart"></canvas></div>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-600 to-indigo-600 p-6 rounded-2xl shadow-lg text-white">
+                        <h3 class="text-blue-100 font-medium mb-1">Total Productivity</h3>
+                        <div class="text-4xl font-bold mb-4" id="stats-total-done">0</div>
+                        <p class="text-sm text-blue-200">Tasks completed across all projects.</p>
+                        <div class="mt-6 flex gap-2">
+                             <button onclick="exportData('pdf')" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded text-sm transition">Export PDF</button>
+                             <button onclick="exportData('xlsx')" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded text-sm transition">Export Excel</button>
                         </div>
-                        <span class="text-xl font-bold text-white">Productivity OS</span>
-                    </div>
-                    
-                    <!-- Navigation Tabs (Added Feature) -->
-                    <div class="hidden md:flex space-x-2">
-                        <button onclick="window.switchTab('dashboard')" id="nav-dashboard" class="px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-gray-800 transition">Dashboard</button>
-                        <button onclick="window.switchTab('projects')" id="nav-projects" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition">Projects</button>
-                        <button onclick="window.switchTab('tasks')" id="nav-tasks" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition">Tasks</button>
-                    </div>
-
-                    <div class="flex items-center space-x-4">
-                        <span id="user-display" class="text-gray-300 text-sm hidden sm:block"></span>
-                        <button onclick="window.handleLogout()" class="text-red-400 hover:text-red-300 text-sm font-medium">Sign Out</button>
                     </div>
                 </div>
             </div>
-        </nav>
-        
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            
-            <!-- DASHBOARD TAB -->
-            <div id="tab-dashboard">
-                <div class="bg-white rounded-2xl shadow-sm p-8 mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back, <span id="dash-username">User</span></h1>
-                    <p class="text-gray-600">You have <span id="active-project-count" class="font-bold text-blue-600">0</span> active projects.</p>
-                </div>
-
-                <!-- Action Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div onclick="window.openModal('project-modal')" class="bg-blue-50 border border-blue-100 rounded-xl p-6 cursor-pointer hover:shadow-md transition">
-                        <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mb-4"><i class="ph ph-folders text-2xl text-blue-600"></i></div>
-                        <h3 class="text-lg font-bold text-gray-900">Create Project</h3>
-                        <p class="text-gray-600 text-sm">Start a new goal</p>
-                    </div>
-                    <div onclick="window.openModal('task-modal')" class="bg-green-50 border border-green-100 rounded-xl p-6 cursor-pointer hover:shadow-md transition">
-                        <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center mb-4"><i class="ph ph-check-square text-2xl text-green-600"></i></div>
-                        <h3 class="text-lg font-bold text-gray-900">Add Task</h3>
-                        <p class="text-gray-600 text-sm">Track your to-dos</p>
-                    </div>
-                </div>
-
-                <h3 class="text-xl font-bold text-gray-900 mb-4">Recent Projects</h3>
-                <div id="dashboard-projects" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Projects injected here -->
-                </div>
-            </div>
-
-            <!-- PROJECTS TAB -->
-            <div id="tab-projects" class="hidden-section">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">All Projects</h2>
-                    <button onclick="window.openModal('project-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-sm">+ Add Project</button>
-                </div>
-                <div id="all-projects-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Projects injected here -->
-                </div>
-            </div>
-
-            <!-- TASKS TAB -->
-            <div id="tab-tasks" class="hidden-section">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">My Tasks</h2>
-                    <button onclick="window.openModal('task-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-sm">+ Add Task</button>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div id="tasks-list" class="divide-y divide-gray-100">
-                        <!-- Tasks injected here -->
-                    </div>
-                </div>
-            </div>
-
         </main>
+
+        <!-- RIGHT PANEL (Details) -->
+        <aside id="detail-panel" class="w-80 bg-white border-l border-gray-200 hidden lg:flex flex-col transform transition-transform">
+            <div id="empty-detail-state" class="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
+                <i class="ph ph-hand-tap text-4xl mb-2 text-gray-300"></i><p class="text-sm">Select a task</p>
+            </div>
+            <div id="active-detail-state" class="flex-col h-full hidden-section">
+                <div class="p-6 border-b border-gray-100 flex items-start gap-3">
+                    <button onclick="toggleDetailComplete()" id="detail-check" class="mt-1 w-6 h-6 rounded-full border-2 border-gray-300 hover:border-blue-500 flex items-center justify-center text-white transition-colors"><i class="ph ph-check text-sm"></i></button>
+                    <textarea id="detail-title" rows="2" class="flex-1 text-lg font-bold bg-transparent outline-none resize-none" onchange="updateTaskDetail('title', this.value)"></textarea>
+                    <button onclick="toggleDetailStar()" id="detail-star" class="text-gray-400 hover:text-yellow-500 text-xl"><i class="ph ph-star"></i></button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                    <button onclick="toggleDetailMyDay()" id="detail-myday-btn" class="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg text-gray-600 text-sm"><i class="ph ph-sun text-lg"></i> <span id="detail-myday-text">Add to My Day</span></button>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3"><i class="ph ph-calendar-blank text-xl text-gray-400 w-8 text-center"></i><input type="date" id="detail-due" class="flex-1 bg-transparent text-sm outline-none" onchange="updateTaskDetail('dueDate', this.value)"></div>
+                        <div class="flex items-center gap-3"><i class="ph ph-folder text-xl text-gray-400 w-8 text-center"></i><select id="detail-project" class="flex-1 bg-transparent text-sm outline-none" onchange="updateTaskDetail('projectId', this.value)"></select></div>
+                    </div>
+                    <textarea id="detail-notes" class="w-full h-40 bg-gray-50 rounded-xl p-4 text-sm resize-none outline-none" placeholder="Add notes..." onchange="updateTaskDetail('remarks', this.value)"></textarea>
+                </div>
+                <div class="p-4 border-t border-gray-100 flex justify-between bg-gray-50">
+                    <button onclick="deleteCurrentTask()" class="text-red-500 hover:text-red-700"><i class="ph ph-trash text-lg"></i></button>
+                    <span class="text-xs text-gray-400">Auto-saved</span>
+                </div>
+            </div>
+        </aside>
     </div>
 
-    <!-- MODAL: NEW PROJECT -->
-    <div id="project-modal" class="hidden-section fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl w-full max-w-lg p-6 animate-fade-in">
-            <h3 class="text-xl font-bold mb-4">Create New Project</h3>
+    <!-- MODALS -->
+    <div id="project-modal" class="hidden-section fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+            <h3 class="font-bold mb-4">New Project</h3>
             <form id="project-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-                    <input type="text" id="proj-name" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea id="proj-desc" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Color Tag</label>
-                    <input type="color" id="proj-color" value="#3b82f6" class="h-10 w-20 rounded cursor-pointer border border-gray-200">
-                </div>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" onclick="window.closeModal('project-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Create Project</button>
-                </div>
+                <input type="text" id="proj-name" placeholder="Name" required class="w-full border rounded-lg px-3 py-2 outline-none">
+                <div class="flex items-center justify-between"><label class="text-sm">Color</label><input type="color" id="proj-color" value="#3b82f6" class="w-8 h-8 rounded-full border-0 p-0"></div>
+                <div class="flex gap-2"><button type="button" onclick="closeModal('project-modal')" class="flex-1 py-2 text-gray-500 bg-gray-100 rounded-lg">Cancel</button><button type="submit" class="flex-1 py-2 bg-blue-600 text-white rounded-lg">Create</button></div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: NEW TASK -->
-    <div id="task-modal" class="hidden-section fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl w-full max-w-lg p-6 animate-fade-in">
-            <h3 class="text-xl font-bold mb-4">Create New Task</h3>
-            <form id="task-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
-                    <input type="text" id="task-title" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Project</label>
-                    <select id="task-project-select" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <!-- Filled by JS -->
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select id="task-status" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <option value="Todo">To Do</option>
-                        <option value="InProgress">In Progress</option>
-                        <option value="Done">Done</option>
-                    </select>
-                </div>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" onclick="window.closeModal('task-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save Task</button>
-                </div>
+    <div id="profile-modal" class="hidden-section fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+            <div class="w-20 h-20 bg-blue-600 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold mb-3" id="modal-avatar">U</div>
+            <h3 class="font-bold text-lg" id="modal-name">User</h3>
+            <p class="text-sm text-gray-500 mb-6" id="modal-email">email@example.com</p>
+            <form id="profile-form" class="text-left space-y-3">
+                <label class="text-xs font-bold text-gray-400 uppercase">Bio</label>
+                <textarea id="profile-bio" rows="2" class="w-full border rounded-lg px-3 py-2 text-sm"></textarea>
+                <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded-lg">Save Profile</button>
             </form>
+            <button onclick="handleLogout()" class="mt-4 text-red-500 text-sm font-medium">Sign Out</button>
+            <button onclick="closeModal('profile-modal')" class="absolute top-4 right-4 text-gray-400"><i class="ph ph-x text-lg"></i></button>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC (MODULAR SDK) -->
+    <!-- SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, updateDoc, doc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- CONFIGURATION ---
+        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyDcA7kVuRrK9194a7rDSvPM0PgaLHSLkIk",
             authDomain: "khb-todo.firebaseapp.com",
@@ -262,185 +230,189 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        let currentUser = null;
-        let projectsCache = [];
 
-        // --- AUTH LOGIC ---
-        onAuthStateChanged(auth, (user) => {
-            const loader = document.getElementById('loading-overlay');
+        // STATE
+        let currentUser = null, tasks = [], projects = [], currentView = 'all', selectedTaskId = null, chartInstance = null;
+
+        // AUTH
+        onAuthStateChanged(auth, async (user) => {
+            document.getElementById('loading-overlay').classList.add('hidden-section');
             if (user) {
                 currentUser = user;
-                document.getElementById('user-display').textContent = user.displayName || user.email;
-                document.getElementById('dash-username').textContent = (user.displayName || user.email).split(' ')[0];
-                
+                updateProfileUI(user);
+                try {
+                    const snap = await getDoc(doc(db, "userProfiles", user.uid));
+                    if(snap.exists()) document.getElementById('profile-bio').value = snap.data().bio || '';
+                } catch(e){}
                 document.getElementById('auth-screen').classList.add('hidden-section');
                 document.getElementById('main-app').classList.remove('hidden-section');
-                
-                subscribeToProjects();
-                subscribeToTasks();
+                subscribeData();
             } else {
                 currentUser = null;
                 document.getElementById('main-app').classList.add('hidden-section');
                 document.getElementById('auth-screen').classList.remove('hidden-section');
             }
-            loader.classList.add('hidden-section');
         });
 
-        // --- PROJECTS LOGIC ---
-        function subscribeToProjects() {
-            if (!currentUser) return;
-            const q = query(collection(db, "projects"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
+        function updateProfileUI(user) {
+            const name = user.displayName || 'User';
+            document.getElementById('sidebar-name').textContent = name;
+            document.getElementById('sidebar-avatar').textContent = name[0].toUpperCase();
+            document.getElementById('modal-name').textContent = name;
+            document.getElementById('modal-email').textContent = user.email;
+            document.getElementById('modal-avatar').textContent = name[0].toUpperCase();
+        }
+
+        // DATA
+        function subscribeData() {
+            const qP = query(collection(db, "projects"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
+            onSnapshot(qP, (s) => { projects = s.docs.map(d => ({id: d.id, ...d.data()})); renderSidebar(); renderDetailSelect(); refreshView(); });
             
-            onSnapshot(q, (snapshot) => {
-                projectsCache = [];
-                snapshot.forEach(doc => projectsCache.push({ id: doc.id, ...doc.data() }));
-                renderProjects();
-                updateProjectSelect();
+            const qT = query(collection(db, "tasks"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
+            onSnapshot(qT, (s) => { 
+                tasks = s.docs.map(d => ({id: d.id, ...d.data()})); 
+                refreshView(); 
+                if(selectedTaskId) { const t = tasks.find(x=>x.id===selectedTaskId); if(t) populateDetail(t); else closeDetail(); }
             });
         }
 
-        function renderProjects() {
-            const container = document.getElementById('dashboard-projects');
-            const listContainer = document.getElementById('all-projects-list');
-            document.getElementById('active-project-count').textContent = projectsCache.length;
+        // RENDER
+        window.refreshView = () => {
+            // Update Header
+            const hTitle = document.getElementById('header-title');
+            const hSub = document.getElementById('header-subtitle');
+            let filtered = [];
+            const today = new Date().toISOString().split('T')[0];
 
-            if (projectsCache.length === 0) {
-                const emptyHTML = `<div class="col-span-full text-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">No projects yet. Click "Create Project" to start!</div>`;
-                container.innerHTML = emptyHTML;
-                listContainer.innerHTML = emptyHTML;
+            if (currentView === 'insights') {
+                document.getElementById('view-tasks').classList.add('hidden-section');
+                document.getElementById('view-insights').classList.remove('hidden-section');
+                renderInsights();
                 return;
+            } else {
+                document.getElementById('view-tasks').classList.remove('hidden-section');
+                document.getElementById('view-insights').classList.add('hidden-section');
             }
 
-            const html = projectsCache.map(p => `
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition relative group">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="w-3 h-3 rounded-full" style="background-color: ${p.color}"></span>
-                        <button onclick="window.deleteProject('${p.id}')" class="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="ph ph-trash"></i></button>
-                    </div>
-                    <h3 class="font-bold text-lg text-gray-800 mb-1">${p.name}</h3>
-                    <p class="text-gray-500 text-sm line-clamp-2">${p.description || 'No description'}</p>
-                </div>
-            `).join('');
+            // Filtering
+            if (currentView === 'all') { filtered = tasks; hTitle.textContent = "All Tasks"; hSub.textContent = "Everything"; }
+            else if (currentView === 'myday') { filtered = tasks.filter(t => t.isMyDay || t.dueDate === today); hTitle.textContent = "My Day"; hSub.textContent = "Today's Focus"; }
+            else if (currentView === 'important') { filtered = tasks.filter(t => t.isImportant); hTitle.textContent = "Important"; hSub.textContent = "Starred"; }
+            else { const p = projects.find(x => x.id === currentView); if(p) { filtered = tasks.filter(t => t.projectId === currentView); hTitle.textContent = p.name; hSub.textContent = "Project"; } }
 
-            container.innerHTML = html;
-            listContainer.innerHTML = html;
-        }
+            // Active Sidebar Highlight
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-white', 'shadow-sm', 'text-blue-600'));
+            const activeBtn = document.getElementById(`nav-${currentView}`);
+            if(activeBtn) activeBtn.classList.add('bg-white', 'shadow-sm', 'text-blue-600');
 
-        function updateProjectSelect() {
-            const select = document.getElementById('task-project-select');
-            select.innerHTML = projectsCache.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            if (projectsCache.length === 0) select.innerHTML = '<option disabled selected>Create a project first</option>';
-        }
-
-        // --- TASKS LOGIC ---
-        function subscribeToTasks() {
-            if (!currentUser) return;
-            const q = query(collection(db, "tasks"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
-            onSnapshot(q, (snapshot) => {
-                const tasks = [];
-                snapshot.forEach(doc => tasks.push({ id: doc.id, ...doc.data() }));
-                renderTasks(tasks);
-            });
-        }
-
-        function renderTasks(tasks) {
-            const container = document.getElementById('tasks-list');
-            if (tasks.length === 0) {
-                container.innerHTML = '<div class="p-8 text-center text-gray-500">No tasks found.</div>';
-                return;
-            }
-            container.innerHTML = tasks.map(t => {
-                const proj = projectsCache.find(p => p.id === t.projectId);
-                return `
-                <div class="p-4 flex items-center justify-between hover:bg-gray-50">
-                    <div class="flex items-center gap-4">
-                        <div class="w-1 h-10 rounded-full" style="background-color: ${proj ? proj.color : '#cbd5e1'}"></div>
-                        <div>
-                            <h4 class="font-medium text-gray-900">${t.title}</h4>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="text-xs text-gray-500">${proj ? proj.name : 'Unknown'}</span>
-                                <span class="status-badge status-${t.status.replace(' ', '')}">${t.status}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button onclick="window.deleteTask('${t.id}')" class="text-gray-400 hover:text-red-500 transition"><i class="ph ph-trash"></i></button>
-                </div>
-            `}).join('');
-        }
-
-        // --- GLOBAL ACTIONS ---
-        window.deleteProject = async (id) => { if(confirm("Delete project?")) await deleteDoc(doc(db, "projects", id)); }
-        window.deleteTask = async (id) => { if(confirm("Delete task?")) await deleteDoc(doc(db, "tasks", id)); }
-        
-        // --- FORM HANDLERS ---
-        document.getElementById('project-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            try {
-                await addDoc(collection(db, "projects"), {
-                    userId: currentUser.uid,
-                    name: document.getElementById('proj-name').value,
-                    description: document.getElementById('proj-desc').value,
-                    color: document.getElementById('proj-color').value,
-                    createdAt: serverTimestamp()
-                });
-                window.closeModal('project-modal');
-                e.target.reset();
-            } catch (err) { alert(err.message); }
-        });
-
-        document.getElementById('task-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const pid = document.getElementById('task-project-select').value;
-            if(!pid || pid.includes("Create")) return alert("Please create a project first!");
+            // Render Lists
+            const active = filtered.filter(t => t.status !== 'Done');
+            const done = filtered.filter(t => t.status === 'Done');
             
-            try {
-                await addDoc(collection(db, "tasks"), {
-                    userId: currentUser.uid,
-                    title: document.getElementById('task-title').value,
-                    projectId: pid,
-                    status: document.getElementById('task-status').value,
-                    createdAt: serverTimestamp()
-                });
-                window.closeModal('task-modal');
-                e.target.reset();
-            } catch (err) { alert(err.message); }
-        });
-
-        // --- UI HANDLERS ---
-        window.toggleAuthMode = () => {
-            document.getElementById('login-container').classList.toggle('hidden-section');
-            document.getElementById('signup-container').classList.toggle('hidden-section');
+            document.getElementById('task-list-active').innerHTML = active.map(t => renderRow(t)).join('');
+            document.getElementById('task-list-completed').innerHTML = done.map(t => renderRow(t)).join('');
+            document.getElementById('completed-count').textContent = done.length;
+            document.getElementById('completed-section').classList.toggle('hidden-section', done.length === 0);
         };
-        
-        window.switchTab = (tabId) => {
-            ['dashboard', 'projects', 'tasks'].forEach(t => {
-                document.getElementById(`tab-${t}`).classList.add('hidden-section');
-                document.getElementById(`nav-${t}`).classList.remove('text-white', 'bg-gray-800');
-                document.getElementById(`nav-${t}`).classList.add('text-gray-300');
+
+        function renderRow(t) {
+            const isDone = t.status === 'Done';
+            const proj = projects.find(p => p.id === t.projectId);
+            const sel = t.id === selectedTaskId ? 'bg-blue-50 border-blue-100' : 'bg-white hover:bg-gray-50';
+            return `
+            <div onclick="selectTask('${t.id}')" class="group flex items-center gap-3 p-3 rounded-xl border border-transparent transition-all mb-2 cursor-pointer ${sel}">
+                <button onclick="event.stopPropagation(); toggleStatus('${t.id}', '${t.status}')" class="check-circle flex-shrink-0 w-5 h-5 rounded-full border-2 ${isDone ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-300'} flex items-center justify-center"><i class="ph ph-check text-xs"></i></button>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium ${isDone ? 'line-through text-gray-400' : 'text-gray-800'} truncate">${t.title}</p>
+                    <div class="flex items-center gap-2 text-xs text-gray-500 h-4">
+                        ${proj ? `<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full" style="background:${proj.color}"></span>${proj.name}</span>` : ''}
+                        ${t.isMyDay ? `<span class="text-orange-500 flex items-center gap-1"><i class="ph ph-sun"></i> My Day</span>` : ''}
+                        ${t.dueDate ? `<span class="flex items-center gap-1"><i class="ph ph-calendar"></i> ${t.dueDate}</span>` : ''}
+                    </div>
+                </div>
+                <button onclick="event.stopPropagation(); toggleImp('${t.id}', ${t.isImportant})" class="text-lg ${t.isImportant ? 'text-yellow-400' : 'text-gray-300 hover:text-gray-400'}"><i class="ph ${t.isImportant ? 'ph-star-fill' : 'ph-star'}"></i></button>
+            </div>`;
+        }
+
+        function renderSidebar() {
+            document.getElementById('project-list-sidebar').innerHTML = projects.map(p => `
+                <button onclick="switchView('${p.id}')" id="nav-${p.id}" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-white hover:shadow-sm transition">
+                    <i class="ph ph-list text-lg text-gray-400"></i> ${p.name}
+                </button>`).join('');
+        }
+
+        function renderInsights() {
+            const doneTotal = tasks.filter(t => t.status === 'Done').length;
+            const activeTotal = tasks.length - doneTotal;
+            document.getElementById('stats-total-done').textContent = doneTotal;
+            
+            const ctx = document.getElementById('productivityChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: ['Done', 'Active'], datasets: [{ data: [doneTotal, activeTotal], backgroundColor: ['#2563eb', '#e5e7eb'], borderWidth: 0 }] },
+                options: { cutout: '70%', plugins: { legend: { display: false } } }
             });
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden-section');
-            document.getElementById(`nav-${tabId}`).classList.add('text-white', 'bg-gray-800');
+        }
+
+        // ACTIONS
+        window.switchView = (v) => { currentView = v; selectedTaskId = null; refreshView(); if(window.innerWidth<768) document.getElementById('sidebar').classList.remove('open'); };
+        window.selectTask = (id) => { selectedTaskId = id; document.getElementById('empty-detail-state').classList.add('hidden-section'); document.getElementById('active-detail-state').classList.remove('hidden-section'); refreshView(); populateDetail(tasks.find(t=>t.id===id)); };
+        
+        window.handleQuickAdd = async (e) => {
+            if (e.key === 'Enter' && e.target.value.trim()) {
+                const isImp = document.getElementById('quick-add-star').classList.contains('text-yellow-500');
+                const isDay = currentView === 'myday';
+                await addDoc(collection(db, "tasks"), { userId: currentUser.uid, title: e.target.value, status: 'Todo', isImportant: isImp, isMyDay: isDay, createdAt: serverTimestamp(), projectId: (currentView.length > 10 ? currentView : '') });
+                e.target.value = '';
+            }
         };
 
+        window.toggleStatus = async (id, s) => { 
+            const n = s === 'Done' ? 'Todo' : 'Done'; 
+            if(n==='Done') confetti({particleCount: 40, spread: 50, origin: {y: 0.7}});
+            await updateDoc(doc(db, "tasks", id), { status: n }); 
+        };
+        window.toggleImp = async (id, s) => await updateDoc(doc(db, "tasks", id), { isImportant: !s });
+        window.updateTaskDetail = async (k, v) => { if(selectedTaskId) await updateDoc(doc(db, "tasks", selectedTaskId), { [k]: v }); };
+        
+        // DETAIL PANEL HELPERS
+        function populateDetail(t) {
+            document.getElementById('detail-title').value = t.title;
+            document.getElementById('detail-check').className = `mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center text-white transition ${t.status==='Done'?'bg-blue-500 border-blue-500':'border-gray-300'}`;
+            document.getElementById('detail-star').className = `text-xl ${t.isImportant?'text-yellow-500':'text-gray-300'}`;
+            document.getElementById('detail-myday-btn').className = `w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition ${t.isMyDay?'bg-blue-50 text-blue-600':'bg-gray-50 text-gray-600'}`;
+            document.getElementById('detail-myday-text').textContent = t.isMyDay ? "Added to My Day" : "Add to My Day";
+            document.getElementById('detail-due').value = t.dueDate || '';
+            document.getElementById('detail-project').value = t.projectId || '';
+            document.getElementById('detail-notes').value = t.remarks || '';
+        }
+        function renderDetailSelect() { document.getElementById('detail-project').innerHTML = '<option value="">No Project</option>' + projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); }
+        
+        window.toggleDetailComplete = () => { const t = tasks.find(x=>x.id===selectedTaskId); window.toggleStatus(selectedTaskId, t.status); };
+        window.toggleDetailStar = () => { const t = tasks.find(x=>x.id===selectedTaskId); window.toggleImp(selectedTaskId, t.isImportant); };
+        window.toggleDetailMyDay = async () => { const t = tasks.find(x=>x.id===selectedTaskId); await updateDoc(doc(db, "tasks", selectedTaskId), { isMyDay: !t.isMyDay }); };
+        window.deleteCurrentTask = async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, "tasks", selectedTaskId)); selectedTaskId=null; document.getElementById('active-detail-state').classList.add('hidden-section'); document.getElementById('empty-detail-state').classList.remove('hidden-section'); } };
+        
+        // MODALS & FORMS
         window.openModal = (id) => document.getElementById(id).classList.remove('hidden-section');
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden-section');
+        window.toggleAuthMode = () => { document.getElementById('login-form').classList.toggle('hidden-section'); document.getElementById('signup-form').classList.toggle('hidden-section'); };
         window.handleLogout = () => signOut(auth);
-
-        // Login Listeners
-        document.getElementById('google-signin').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
         
-        document.getElementById('login-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
-                .catch(e => alert(e.message));
-        });
+        document.getElementById('project-form').addEventListener('submit', async (e) => { e.preventDefault(); await addDoc(collection(db, "projects"), { userId: currentUser.uid, name: document.getElementById('proj-name').value, color: document.getElementById('proj-color').value, createdAt: serverTimestamp() }); e.target.reset(); closeModal('project-modal'); });
+        document.getElementById('profile-form').addEventListener('submit', async (e) => { e.preventDefault(); await setDoc(doc(db, "userProfiles", currentUser.uid), { bio: document.getElementById('profile-bio').value }, {merge:true}); closeModal('profile-modal'); });
+        
+        // EXPORT
+        window.exportData = (type) => {
+            if(type==='pdf') html2pdf().from(document.getElementById('view-tasks')).save('tasks.pdf');
+            else if(type==='xlsx') { const ws = XLSX.utils.json_to_sheet(tasks.map(t=>({Title:t.title, Status:t.status, Date:t.dueDate}))); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Tasks"); XLSX.writeFile(wb, "tasks.xlsx"); }
+        };
 
-        document.getElementById('signup-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-password').value)
-                .then(cred => updateProfile(cred.user, { displayName: "User" }))
-                .catch(e => alert(e.message));
-        });
+        // AUTH HANDLERS
+        document.getElementById('google-signin').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
+        document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value).catch(e=>alert(e.message)); });
+        document.getElementById('signup-form').addEventListener('submit', async (e) => { e.preventDefault(); try{ const c = await createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-pass').value); await updateProfile(c.user, {displayName: document.getElementById('signup-name').value}); }catch(e){alert(e.message);} });
     </script>
 </body>
 </html>
