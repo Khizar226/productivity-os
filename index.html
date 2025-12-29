@@ -1,43 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light"> <!-- Default light mode -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taska - Simple Tasks. Strong Results.</title>
+    <title>Taska Ultimate - Project Management</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 850: '#151f32', 900: '#0f172a' }
+                    }
+                }
+            }
+        }
+    </script>
     
     <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Confetti -->
+    <!-- Effects & Utilities -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
-    <!-- Charts & Export -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    <!-- Google Fonts -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
-        body { font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
         
-        /* Custom Scrollbar */
+        /* Smooth Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         .hidden-section { display: none !important; }
         
-        /* Task Checkbox Animation */
+        /* Animations */
         .check-circle { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .check-circle:hover { transform: scale(1.1); }
         
-        /* Loading Spinner */
+        .step-check { transition: all 0.15s; }
+        .step-check:hover { border-color: #3b82f6; }
+
+        /* Loader */
         .spinner {
             border: 3px solid #f1f5f9; border-top: 3px solid #2563eb;
             border-radius: 50%; width: 24px; height: 24px;
@@ -45,60 +58,57 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Board View Styles */
-        .board-column { min-width: 300px; max-width: 300px; }
-        
-        /* Mobile */
+        /* Mobile Slide */
         @media (max-width: 768px) {
             #sidebar { position: fixed; z-index: 50; height: 100%; transform: translateX(-100%); transition: transform 0.3s; }
             #sidebar.open { transform: translateX(0); }
-            #detail-panel { position: fixed; z-index: 50; width: 100%; height: 100%; top:0; right:0; }
+            #detail-panel { position: fixed; z-index: 50; width: 100%; height: 100%; top:0; right:0; transform: translateX(100%); transition: transform 0.3s; }
+            #detail-panel.open { transform: translateX(0); }
         }
     </style>
 </head>
 
-<body class="text-slate-800 h-screen flex flex-col">
+<body class="bg-gray-50 text-slate-800 h-screen flex flex-col dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
 
     <!-- LOADING OVERLAY -->
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center">
+    <div id="loading-overlay" class="fixed inset-0 bg-white dark:bg-slate-900 z-[100] flex flex-col items-center justify-center">
         <div class="spinner mb-4"></div>
-        <p class="text-slate-500 font-medium">Loading Taska...</p>
+        <p class="text-slate-500 font-medium">Loading Workspace...</p>
     </div>
 
     <!-- AUTH SCREEN -->
-    <div id="auth-screen" class="fixed inset-0 z-[90] bg-white flex items-center justify-center p-4">
+    <div id="auth-screen" class="fixed inset-0 z-[90] bg-white dark:bg-slate-900 flex items-center justify-center p-4">
         <div class="w-full max-w-md text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 text-white mb-6 shadow-xl shadow-blue-200">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 text-white mb-6 shadow-xl shadow-blue-500/20">
                 <i class="ph ph-check-fat text-3xl"></i>
             </div>
-            <h1 class="text-4xl font-bold text-slate-900 mb-2">Taska</h1>
-            <p class="text-slate-500 mb-8 text-lg">Simple Tasks. Strong Results.</p>
+            <h1 class="text-4xl font-bold text-slate-900 dark:text-white mb-2">Taska</h1>
+            <p class="text-slate-500 dark:text-slate-400 mb-8 text-lg">Simple Tasks. Strong Results.</p>
             
-            <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
-                <button id="google-signin" class="w-full bg-white border border-slate-200 text-slate-700 font-medium py-3 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-50 transition mb-6">
+            <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700">
+                <button id="google-signin" class="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-white font-medium py-3 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-600 transition mb-6">
                     <i class="ph ph-google-logo text-xl text-red-500"></i> Continue with Google
                 </button>
                 
                 <div class="relative my-6">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-100"></div></div>
-                    <div class="relative flex justify-center text-xs text-slate-400 bg-white px-2">OR EMAIL</div>
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-100 dark:border-slate-600"></div></div>
+                    <div class="relative flex justify-center text-xs text-slate-400 bg-white dark:bg-slate-800 px-2">OR EMAIL</div>
                 </div>
 
                 <form id="login-form" class="space-y-4">
-                    <input type="email" id="login-email" placeholder="Email" class="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="password" id="login-pass" placeholder="Password" class="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition">Sign In</button>
+                    <input type="email" id="login-email" placeholder="Email" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 dark:text-white rounded-xl outline-none border border-transparent focus:border-blue-500">
+                    <input type="password" id="login-pass" placeholder="Password" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 dark:text-white rounded-xl outline-none border border-transparent focus:border-blue-500">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition transform active:scale-95">Sign In</button>
                 </form>
                 
-                <p class="mt-6 text-sm text-slate-500">
-                    New to Taska? <button onclick="toggleAuthMode()" class="text-blue-600 font-bold hover:underline">Create Account</button>
+                <p class="mt-6 text-sm text-slate-500 dark:text-slate-400">
+                    New to Taska? <button onclick="toggleAuthMode()" class="text-blue-600 dark:text-blue-400 font-bold hover:underline">Create Account</button>
                 </p>
 
-                <!-- Signup Form -->
-                <form id="signup-form" class="space-y-4 hidden-section mt-4 pt-4 border-t border-slate-100">
-                    <input type="text" id="signup-name" placeholder="Full Name" required class="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none">
-                    <input type="email" id="signup-email" placeholder="Email" required class="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none">
-                    <input type="password" id="signup-pass" placeholder="Password" required class="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none">
+                <form id="signup-form" class="space-y-4 hidden-section mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <input type="text" id="signup-name" placeholder="Full Name" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 dark:text-white rounded-xl outline-none">
+                    <input type="email" id="signup-email" placeholder="Email" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 dark:text-white rounded-xl outline-none">
+                    <input type="password" id="signup-pass" placeholder="Password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 dark:text-white rounded-xl outline-none">
                     <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700">Join Taska</button>
                 </form>
             </div>
@@ -109,70 +119,87 @@
     <div id="main-app" class="flex h-full hidden-section relative overflow-hidden">
         
         <!-- SIDEBAR -->
-        <aside id="sidebar" class="w-72 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
-            <!-- Header / Workspace Switcher -->
-            <div class="h-16 flex items-center px-6 border-b border-slate-100">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white mr-3">
-                    <i class="ph ph-check-fat weight-bold"></i>
+        <aside id="sidebar" class="w-72 bg-white dark:bg-slate-850 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 transition-colors">
+            <!-- Header -->
+            <div class="h-16 flex items-center px-6 border-b border-slate-100 dark:border-slate-800 justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                        <i class="ph ph-check-fat weight-bold"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight dark:text-white">Taska</span>
                 </div>
-                <span class="font-bold text-xl tracking-tight text-slate-800">Taska</span>
+                <!-- Dark Mode Toggle -->
+                <button onclick="toggleDarkMode()" class="text-slate-400 hover:text-blue-500 transition">
+                    <i class="ph ph-moon text-xl dark:hidden"></i>
+                    <i class="ph ph-sun text-xl hidden dark:block"></i>
+                </button>
             </div>
 
             <!-- Profile Snippet -->
             <div class="p-4">
-                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition" onclick="openModal('profile-modal')">
+                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition" onclick="openModal('profile-modal')">
                     <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 text-white flex items-center justify-center font-bold text-lg shadow-sm" id="sidebar-avatar">U</div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-bold text-slate-900 truncate" id="sidebar-name">User</p>
-                        <p class="text-xs text-slate-500 truncate">My Workspace</p>
+                        <p class="text-sm font-bold text-slate-900 dark:text-white truncate" id="sidebar-name">User</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">Online</p>
                     </div>
+                    <i class="ph ph-caret-right text-slate-300"></i>
                 </div>
             </div>
 
             <!-- Navigation -->
             <nav class="flex-1 overflow-y-auto px-4 space-y-1">
-                <button onclick="switchView('myday')" id="nav-myday" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition">
-                    <i class="ph ph-sun text-lg"></i> My Day
+                <button onclick="switchView('myday')" id="nav-myday" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                    <i class="ph ph-sun text-lg text-slate-400"></i> My Day
                 </button>
-                <button onclick="switchView('all')" id="nav-all" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition">
-                    <i class="ph ph-infinity text-lg"></i> All Tasks
+                <button onclick="switchView('important')" id="nav-important" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                    <i class="ph ph-star text-lg text-slate-400"></i> Important
                 </button>
-                <button onclick="switchView('board')" id="nav-board" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition">
-                    <i class="ph ph-kanban text-lg"></i> Board View
+                <button onclick="switchView('all')" id="nav-all" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                    <i class="ph ph-infinity text-lg text-slate-400"></i> All Tasks
+                </button>
+                <button onclick="switchView('board')" id="nav-board" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                    <i class="ph ph-kanban text-lg text-slate-400"></i> Board View
                 </button>
 
                 <div class="mt-8 mb-2 px-3 flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
                     <span>Projects</span>
-                    <button onclick="openModal('project-modal')" class="hover:text-blue-600 text-lg"><i class="ph ph-plus-circle"></i></button>
+                    <button onclick="openModal('project-modal')" class="hover:text-blue-600 text-lg transition"><i class="ph ph-plus-circle"></i></button>
                 </div>
                 <div id="project-list-sidebar" class="space-y-1"></div>
             </nav>
 
-            <!-- Footer / Author Info -->
-            <div class="p-4 bg-slate-50 border-t border-slate-200 text-center">
-                <p class="text-xs font-semibold text-slate-500">Designed & Developed by</p>
-                <p class="text-sm font-bold text-slate-700 mb-1">Khizar Hayat (Khizar226)</p>
-                <p class="text-[10px] text-slate-400 mb-3 leading-tight">Graphic Designer, Digital Marketer, SEO & Web Development</p>
-                <div class="flex justify-center gap-3 text-slate-400">
-                    <a href="#" class="hover:text-blue-600"><i class="ph ph-envelope"></i></a>
-                    <a href="#" class="hover:text-blue-600"><i class="ph ph-globe"></i></a>
-                    <a href="#" class="hover:text-blue-600"><i class="ph ph-linkedin-logo"></i></a>
+            <!-- Footer -->
+            <div class="p-5 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 text-center">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Designed & Developed by</p>
+                <p class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1">Khizar Hayat (Khizar226)</p>
+                <p class="text-[10px] text-slate-400 mb-3 leading-tight max-w-[200px] mx-auto">Graphic Designer, Digital Marketer, SEO & Web Development</p>
+                <div class="flex justify-center gap-4 text-slate-400 text-lg">
+                    <a href="#" class="hover:text-blue-600 transition"><i class="ph ph-envelope"></i></a>
+                    <a href="#" class="hover:text-blue-600 transition"><i class="ph ph-globe"></i></a>
+                    <a href="#" class="hover:text-blue-600 transition"><i class="ph ph-linkedin-logo"></i></a>
+                </div>
+                <div class="mt-3 flex justify-center gap-3 text-[10px] text-slate-400 underline decoration-slate-300">
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Support</a>
                 </div>
             </div>
         </aside>
 
         <!-- CONTENT AREA -->
-        <main class="flex-1 flex flex-col min-w-0 bg-white relative">
+        <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-slate-900 relative transition-colors">
             <!-- Header -->
-            <header class="h-16 flex items-center justify-between px-6 border-b border-slate-100 bg-white/80 backdrop-blur z-20 sticky top-0">
+            <header class="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur z-20 sticky top-0">
                 <div class="flex items-center gap-4">
                     <button class="md:hidden text-slate-500" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="ph ph-list text-2xl"></i></button>
                     <div>
-                        <h2 class="text-xl font-bold text-slate-800" id="header-title">My Day</h2>
-                        <p class="text-xs text-slate-500" id="header-subtitle">Monday, Dec 29</p>
+                        <h2 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2" id="header-title">My Day</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400" id="header-subtitle">Overview</p>
                     </div>
                 </div>
                 <div class="flex gap-2">
+                    <button onclick="requestNotificationPermission()" class="p-2 text-slate-400 hover:text-blue-600" title="Enable Notifications"><i class="ph ph-bell text-xl"></i></button>
                     <button onclick="openModal('profile-modal')" class="p-2 text-slate-400 hover:text-blue-600" title="Settings"><i class="ph ph-gear text-xl"></i></button>
                 </div>
             </header>
@@ -180,11 +207,11 @@
             <!-- VIEW: LIST (Default) -->
             <div id="view-list" class="flex-1 overflow-y-auto p-6 md:p-10">
                 <!-- Quick Add -->
-                <div class="bg-white border border-slate-200 shadow-sm rounded-xl p-3 flex items-center gap-4 mb-8 focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-400 transition-all">
+                <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-3 flex items-center gap-4 mb-8 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900 focus-within:border-blue-400 transition-all">
                     <i class="ph ph-plus text-2xl text-slate-300 ml-2"></i>
-                    <input type="text" id="quick-add-input" placeholder="Add a task..." class="flex-1 bg-transparent outline-none text-slate-700 placeholder-slate-400" onkeydown="handleQuickAdd(event)">
+                    <input type="text" id="quick-add-input" placeholder="Add a task..." class="flex-1 bg-transparent outline-none text-slate-700 dark:text-slate-200 placeholder-slate-400" onkeydown="handleQuickAdd(event)">
                     <div class="flex gap-2 pr-2">
-                         <button class="p-1.5 rounded hover:bg-slate-100 text-slate-400" onclick="this.classList.toggle('text-yellow-500')" id="quick-add-star"><i class="ph ph-star-fill"></i></button>
+                         <button class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400" onclick="this.classList.toggle('text-yellow-500')" id="quick-add-star"><i class="ph ph-star-fill"></i></button>
                     </div>
                 </div>
 
@@ -194,139 +221,145 @@
             </div>
 
             <!-- VIEW: BOARD (Kanban) -->
-            <div id="view-board" class="flex-1 overflow-x-auto overflow-y-hidden p-6 hidden-section bg-slate-50">
+            <div id="view-board" class="flex-1 overflow-x-auto overflow-y-hidden p-6 hidden-section bg-slate-50 dark:bg-slate-850">
                 <div class="flex gap-6 h-full">
-                    <!-- Column 1: To Do -->
-                    <div class="board-column flex flex-col h-full">
+                    <!-- Columns -->
+                    <div class="board-column flex flex-col h-full w-80">
                         <div class="flex justify-between items-center mb-4 px-1">
-                            <h3 class="font-bold text-slate-700 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-slate-400"></span> To Do</h3>
-                            <span class="text-xs bg-slate-200 px-2 py-0.5 rounded-full text-slate-600" id="count-todo">0</span>
+                            <h3 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-slate-400"></span> To Do</h3>
+                            <span class="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full text-slate-600 dark:text-slate-300" id="count-todo">0</span>
                         </div>
                         <div class="flex-1 overflow-y-auto space-y-3 pr-2" id="board-todo"></div>
                     </div>
-                    <!-- Column 2: In Progress -->
-                    <div class="board-column flex flex-col h-full">
+                    <div class="board-column flex flex-col h-full w-80">
                          <div class="flex justify-between items-center mb-4 px-1">
-                            <h3 class="font-bold text-blue-700 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> In Progress</h3>
-                            <span class="text-xs bg-blue-100 px-2 py-0.5 rounded-full text-blue-600" id="count-progress">0</span>
+                            <h3 class="font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> In Progress</h3>
+                            <span class="text-xs bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded-full text-blue-600 dark:text-blue-300" id="count-progress">0</span>
                         </div>
                         <div class="flex-1 overflow-y-auto space-y-3 pr-2" id="board-progress"></div>
                     </div>
-                    <!-- Column 3: Done -->
-                    <div class="board-column flex flex-col h-full">
+                    <div class="board-column flex flex-col h-full w-80">
                          <div class="flex justify-between items-center mb-4 px-1">
-                            <h3 class="font-bold text-green-700 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500"></span> Done</h3>
-                            <span class="text-xs bg-green-100 px-2 py-0.5 rounded-full text-green-600" id="count-done">0</span>
+                            <h3 class="font-bold text-green-700 dark:text-green-400 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500"></span> Done</h3>
+                            <span class="text-xs bg-green-100 dark:bg-green-900 px-2 py-0.5 rounded-full text-green-600 dark:text-green-300" id="count-done">0</span>
                         </div>
                         <div class="flex-1 overflow-y-auto space-y-3 pr-2" id="board-done"></div>
                     </div>
                 </div>
             </div>
-
         </main>
 
-        <!-- DETAIL PANEL -->
-        <aside id="detail-panel" class="w-96 bg-white border-l border-slate-200 hidden lg:flex flex-col shadow-xl z-30">
-            <div id="empty-detail" class="flex-1 flex flex-col items-center justify-center text-slate-300 p-10 text-center">
+        <!-- DETAIL PANEL (The "Screenshot" features) -->
+        <aside id="detail-panel" class="w-96 bg-white dark:bg-slate-850 border-l border-slate-200 dark:border-slate-800 hidden lg:flex flex-col shadow-2xl z-30 transition-transform">
+            <!-- Empty State -->
+            <div id="empty-detail" class="flex-1 flex flex-col items-center justify-center text-slate-300 dark:text-slate-600 p-10 text-center">
                 <i class="ph ph-hand-tap text-5xl mb-4"></i>
                 <p>Select a task to view details</p>
             </div>
 
+            <!-- Active Content -->
             <div id="active-detail" class="flex flex-col h-full hidden-section">
-                <!-- Header -->
-                <div class="p-6 border-b border-slate-100 bg-white">
+                <!-- Task Header -->
+                <div class="p-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-850">
                     <div class="flex items-start gap-4">
-                        <button onclick="toggleDetailComplete()" id="detail-check" class="mt-1 w-6 h-6 rounded-full border-2 border-slate-300 hover:border-blue-500 flex items-center justify-center transition text-white">
+                        <button onclick="toggleDetailComplete()" id="detail-check" class="mt-1 w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 flex items-center justify-center transition text-white">
                             <i class="ph ph-check text-xs"></i>
                         </button>
-                        <textarea id="detail-title" rows="2" class="flex-1 text-lg font-bold text-slate-800 bg-transparent outline-none resize-none placeholder-slate-300" placeholder="Task Title"></textarea>
+                        <textarea id="detail-title" rows="2" class="flex-1 text-lg font-bold text-slate-800 dark:text-white bg-transparent outline-none resize-none placeholder-slate-300" placeholder="Task Title"></textarea>
                         <button onclick="toggleDetailStar()" id="detail-star" class="text-slate-300 hover:text-yellow-400 text-2xl"><i class="ph ph-star-fill"></i></button>
                     </div>
                 </div>
 
-                <!-- Body -->
+                <!-- Scrollable Body -->
                 <div class="flex-1 overflow-y-auto p-6 space-y-8">
-                    <!-- Meta -->
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-4 text-sm text-slate-600">
-                            <div class="w-6 flex justify-center"><i class="ph ph-calendar-blank text-lg"></i></div>
-                            <input type="date" id="detail-due" class="flex-1 bg-transparent outline-none">
-                        </div>
-                        <div class="flex items-center gap-4 text-sm text-slate-600">
-                            <div class="w-6 flex justify-center"><i class="ph ph-flag text-lg"></i></div>
-                            <select id="detail-priority" class="flex-1 bg-transparent outline-none">
-                                <option value="Low">Low Priority</option>
-                                <option value="Medium">Medium Priority</option>
-                                <option value="High">High Priority</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-4 text-sm text-slate-600">
-                            <div class="w-6 flex justify-center"><i class="ph ph-folder text-lg"></i></div>
-                            <select id="detail-project" class="flex-1 bg-transparent outline-none"></select>
+                    
+                    <!-- 1. STEPS (Subtasks) Feature -->
+                    <div>
+                        <div id="steps-list" class="space-y-2 mb-2"></div>
+                        <div class="flex items-center gap-3 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 p-2 rounded-lg transition" onclick="addStep()">
+                            <i class="ph ph-plus"></i>
+                            <span class="text-sm font-medium">Add step</span>
                         </div>
                     </div>
 
-                    <!-- Comments / Activity -->
-                    <div>
-                        <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">Comments & Activity</h4>
-                        <div id="activity-log" class="space-y-4 mb-4">
-                            <!-- JS Filled -->
+                    <!-- 2. Main Actions -->
+                    <div class="space-y-1">
+                        <button onclick="toggleDetailMyDay()" id="detail-myday-btn" class="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-sm">
+                            <i class="ph ph-sun text-xl"></i> <span id="detail-myday-text">Add to My Day</span>
+                        </button>
+                        <button class="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-sm relative group">
+                            <i class="ph ph-bell text-xl"></i> <span>Remind me</span>
+                            <input type="datetime-local" id="detail-remind" class="absolute inset-0 opacity-0 cursor-pointer" onchange="setReminder(this.value)">
+                            <span id="detail-remind-display" class="ml-auto text-xs text-blue-500"></span>
+                        </button>
+                        <div class="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-sm relative">
+                            <i class="ph ph-calendar-blank text-xl"></i>
+                            <input type="date" id="detail-due" class="bg-transparent outline-none flex-1 text-sm text-slate-600 dark:text-slate-300" onchange="updateTaskDetail('dueDate', this.value)">
                         </div>
-                        <div class="flex gap-2">
-                            <input type="text" id="detail-comment-input" placeholder="Add a comment..." class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500">
-                            <button onclick="addComment()" class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><i class="ph ph-paper-plane-right"></i></button>
+                        <div class="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-sm">
+                            <i class="ph ph-arrows-clockwise text-xl"></i>
+                            <select id="detail-repeat" class="bg-transparent outline-none flex-1" onchange="updateTaskDetail('repeat', this.value)">
+                                <option value="">Repeat</option>
+                                <option value="Daily">Daily</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Monthly">Monthly</option>
+                            </select>
                         </div>
                     </div>
+
+                    <!-- 3. Metadata -->
+                    <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                         <div class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                             <i class="ph ph-tag text-lg"></i>
+                             <select id="detail-project" class="flex-1 bg-transparent outline-none dark:bg-slate-850"></select>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                            <i class="ph ph-paperclip text-lg"></i>
+                            <span class="text-slate-400 italic cursor-not-allowed">Add file (Pro)</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Notes -->
+                    <textarea id="detail-notes" class="w-full h-32 bg-slate-50 dark:bg-slate-800 rounded-xl p-4 text-sm resize-none outline-none border border-transparent focus:border-blue-500 transition text-slate-700 dark:text-slate-300" placeholder="Add note..." onchange="updateTaskDetail('remarks', this.value)"></textarea>
                 </div>
 
                 <!-- Footer -->
-                <div class="p-4 border-t border-slate-100 flex justify-between bg-slate-50 text-xs text-slate-500">
-                    <button onclick="closeDetail()" class="lg:hidden text-slate-500">Close</button>
-                    <button onclick="deleteTask()" class="text-red-500 hover:text-red-700 flex items-center gap-1"><i class="ph ph-trash"></i> Delete Task</button>
+                <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex justify-between bg-slate-50 dark:bg-slate-900 text-xs text-slate-500">
+                    <button onclick="document.getElementById('detail-panel').classList.remove('open')" class="lg:hidden text-slate-500">Close</button>
+                    <span id="detail-created-at">Created today</span>
+                    <button onclick="deleteTask()" class="text-red-500 hover:text-red-700"><i class="ph ph-trash text-lg"></i></button>
                 </div>
             </div>
         </aside>
     </div>
 
-    <!-- PROFILE EDITOR MODAL -->
-    <div id="profile-modal" class="hidden-section fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl w-full max-w-lg p-8 shadow-2xl relative">
+    <!-- PROFILE MODAL -->
+    <div id="profile-modal" class="hidden-section fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-lg p-8 shadow-2xl relative">
             <button onclick="closeModal('profile-modal')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
-            
-            <h2 class="text-2xl font-bold mb-6">Edit Profile</h2>
-            
+            <h2 class="text-2xl font-bold mb-6 dark:text-white">Edit Profile</h2>
             <div class="flex flex-col items-center mb-8">
                 <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-4xl font-bold mb-3 shadow-lg" id="edit-avatar">U</div>
                 <p class="text-slate-500 text-sm" id="edit-email">user@example.com</p>
             </div>
-
             <form id="profile-form" class="space-y-5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Display Name</label>
-                    <input type="text" id="edit-name" class="w-full border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Bio / Role</label>
-                    <textarea id="edit-bio" rows="2" class="w-full border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500" placeholder="e.g. Product Manager"></textarea>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Interests</label>
-                    <input type="text" id="edit-interests" class="w-full border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500" placeholder="Coding, Design...">
-                </div>
-                <button type="submit" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition">Save Changes</button>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Display Name</label><input type="text" id="edit-name" class="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500"></div>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Bio</label><textarea id="edit-bio" rows="2" class="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500" placeholder="Product Manager..."></textarea></div>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Interests</label><input type="text" id="edit-interests" class="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500"></div>
+                <button type="submit" class="w-full bg-slate-900 dark:bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition">Save Changes</button>
             </form>
         </div>
     </div>
 
     <!-- PROJECT MODAL -->
     <div id="project-modal" class="hidden-section fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
-            <h3 class="text-lg font-bold mb-4">New Project</h3>
+        <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+            <h3 class="text-lg font-bold mb-4 dark:text-white">New Project</h3>
             <form id="project-form" class="space-y-4">
-                <input type="text" id="proj-name" placeholder="Project Name" required class="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500">
-                <div class="flex items-center justify-between"><label class="text-sm text-slate-500">Color</label><input type="color" id="proj-color" value="#3b82f6" class="w-8 h-8 rounded-full border-0 p-0 cursor-pointer"></div>
+                <input type="text" id="proj-name" placeholder="Project Name" required class="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white rounded-lg px-3 py-2 outline-none focus:border-blue-500">
+                <div class="flex items-center justify-between dark:text-slate-300"><label class="text-sm">Color</label><input type="color" id="proj-color" value="#3b82f6" class="w-8 h-8 rounded-full border-0 p-0 cursor-pointer"></div>
                 <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeModal('project-modal')" class="flex-1 py-2 text-slate-500 hover:bg-slate-50 rounded-lg">Cancel</button>
+                    <button type="button" onclick="closeModal('project-modal')" class="flex-1 py-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg">Cancel</button>
                     <button type="submit" class="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create</button>
                 </div>
             </form>
@@ -339,7 +372,7 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, updateDoc, doc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // FIREBASE CONFIG (Yours)
+        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyDcA7kVuRrK9194a7rDSvPM0PgaLHSLkIk",
             authDomain: "khb-todo.firebaseapp.com",
@@ -356,13 +389,19 @@
         // STATE
         let currentUser = null, tasks = [], projects = [], currentView = 'myday', selectedTaskId = null;
 
+        // DARK MODE INIT
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
         // AUTH
         onAuthStateChanged(auth, async (user) => {
             document.getElementById('loading-overlay').classList.add('hidden-section');
             if (user) {
                 currentUser = user;
                 updateAppProfile(user);
-                // Load extended profile
                 try {
                     const snap = await getDoc(doc(db, "userProfiles", user.uid));
                     if(snap.exists()) {
@@ -374,6 +413,7 @@
                 document.getElementById('auth-screen').classList.add('hidden-section');
                 document.getElementById('main-app').classList.remove('hidden-section');
                 subscribeData();
+                requestNotificationPermission();
             } else {
                 currentUser = null;
                 document.getElementById('main-app').classList.add('hidden-section');
@@ -391,54 +431,48 @@
             document.getElementById('edit-email').textContent = user.email;
         }
 
-        // DATA SUBSCRIPTION
+        // DATA
         function subscribeData() {
-            // Projects
             onSnapshot(query(collection(db, "projects"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc")), (s) => {
                 projects = s.docs.map(d => ({id: d.id, ...d.data()}));
                 renderProjectsSidebar();
                 renderDetailSelect();
                 refreshView();
             });
-            // Tasks
             onSnapshot(query(collection(db, "tasks"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc")), (s) => {
                 tasks = s.docs.map(d => ({id: d.id, ...d.data()}));
                 refreshView();
                 if(selectedTaskId) populateDetail(tasks.find(t=>t.id===selectedTaskId));
+                checkReminders();
             });
         }
 
-        // RENDER LOGIC
+        // RENDER
         window.refreshView = () => {
             const listContainer = document.getElementById('task-list-container');
             const hTitle = document.getElementById('header-title');
             const hSub = document.getElementById('header-subtitle');
             const today = new Date().toISOString().split('T')[0];
 
-            // 1. Determine Title & Filter
             let filtered = [];
             if(currentView === 'myday') {
                 filtered = tasks.filter(t => t.isMyDay || t.dueDate === today);
                 hTitle.textContent = "My Day"; hSub.textContent = new Date().toDateString();
             } else if(currentView === 'all') {
-                filtered = tasks;
-                hTitle.textContent = "All Tasks"; hSub.textContent = "Overview";
+                filtered = tasks; hTitle.textContent = "All Tasks"; hSub.textContent = "Overview";
+            } else if(currentView === 'important') {
+                filtered = tasks.filter(t => t.isImportant); hTitle.textContent = "Important"; hSub.textContent = "Starred";
             } else if(currentView === 'board') {
-                 // Board Logic handled separately below
-                 filtered = tasks; // All tasks for board
-                 hTitle.textContent = "Board View"; hSub.textContent = "Kanban";
+                filtered = tasks; hTitle.textContent = "Board"; hSub.textContent = "Kanban View";
             } else {
-                // Project
                 const p = projects.find(x => x.id === currentView);
                 if(p) { filtered = tasks.filter(t => t.projectId === currentView); hTitle.textContent = p.name; hSub.textContent = "Project"; }
             }
 
-            // 2. Active Sidebar
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-blue-50', 'text-blue-600'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-blue-600'));
             const activeBtn = document.getElementById(`nav-${currentView}`);
-            if(activeBtn) activeBtn.classList.add('bg-blue-50', 'text-blue-600');
+            if(activeBtn) activeBtn.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-blue-600');
 
-            // 3. Render Views
             if(currentView === 'board') {
                 document.getElementById('view-list').classList.add('hidden-section');
                 document.getElementById('view-board').classList.remove('hidden-section');
@@ -446,8 +480,6 @@
             } else {
                 document.getElementById('view-list').classList.remove('hidden-section');
                 document.getElementById('view-board').classList.add('hidden-section');
-                
-                // Render List
                 if(filtered.length === 0) listContainer.innerHTML = `<div class="text-center text-slate-400 py-20"><i class="ph ph-check-circle text-4xl mb-2"></i><p>No tasks found</p></div>`;
                 else listContainer.innerHTML = filtered.map(t => renderTaskCard(t)).join('');
             }
@@ -456,18 +488,25 @@
         function renderTaskCard(t) {
             const isDone = t.status === 'Done';
             const proj = projects.find(p => p.id === t.projectId);
-            const sel = t.id === selectedTaskId ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-200 hover:border-blue-300';
+            const sel = t.id === selectedTaskId ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300';
+            
+            // Substeps calculation
+            const steps = t.steps || [];
+            const doneSteps = steps.filter(s => s.done).length;
+            const stepText = steps.length > 0 ? `${doneSteps}/${steps.length}` : '';
+
             return `
-            <div onclick="selectTask('${t.id}')" class="bg-white border rounded-xl p-4 flex items-center gap-4 cursor-pointer transition shadow-sm ${sel}">
-                <button onclick="event.stopPropagation(); toggleStatus('${t.id}', '${t.status}')" class="check-circle w-6 h-6 rounded-full border-2 ${isDone ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-300'} flex items-center justify-center">
+            <div onclick="selectTask('${t.id}')" class="bg-white dark:bg-slate-800 border rounded-xl p-4 flex items-center gap-4 cursor-pointer transition shadow-sm ${sel}">
+                <button onclick="event.stopPropagation(); toggleStatus('${t.id}', '${t.status}')" class="check-circle w-6 h-6 rounded-full border-2 ${isDone ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-300 dark:border-slate-600'} flex items-center justify-center">
                     <i class="ph ph-check text-xs"></i>
                 </button>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium ${isDone ? 'line-through text-slate-400' : 'text-slate-800'} truncate">${t.title}</p>
-                    <div class="flex items-center gap-2 mt-1 text-xs text-slate-500">
+                    <p class="text-sm font-medium ${isDone ? 'line-through text-slate-400' : 'text-slate-800 dark:text-slate-200'} truncate">${t.title}</p>
+                    <div class="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
                         ${proj ? `<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background:${proj.color}"></span> ${proj.name}</span>` : ''}
                         ${t.dueDate ? `<span class="flex items-center gap-1 ${t.dueDate < new Date().toISOString().split('T')[0] && !isDone ? 'text-red-500' : ''}"><i class="ph ph-calendar"></i> ${t.dueDate}</span>` : ''}
-                        ${t.priority && t.priority !== 'Low' ? `<span class="text-orange-500">${t.priority}</span>` : ''}
+                        ${stepText ? `<span class="flex items-center gap-1 text-slate-400"><i class="ph ph-list-checks"></i> ${stepText}</span>` : ''}
+                        ${t.repeat ? `<span class="flex items-center gap-1"><i class="ph ph-arrows-clockwise"></i></span>` : ''}
                     </div>
                 </div>
                 ${t.isImportant ? `<i class="ph ph-star-fill text-yellow-400 text-lg"></i>` : ''}
@@ -476,42 +515,26 @@
 
         function renderBoard(list) {
             const cols = { 'Todo': 'board-todo', 'In Progress': 'board-progress', 'Done': 'board-done' };
-            const counts = { 'Todo': 0, 'In Progress': 0, 'Done': 0 };
-            
-            // Clear
             Object.values(cols).forEach(id => document.getElementById(id).innerHTML = '');
-            
             list.forEach(t => {
                 const s = t.status === 'Done' ? 'Done' : (t.status === 'In Progress' ? 'In Progress' : 'Todo');
-                counts[s]++;
-                const card = `
-                <div onclick="selectTask('${t.id}')" class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 cursor-pointer hover:shadow-md transition">
+                document.getElementById(cols[s]).innerHTML += `
+                <div onclick="selectTask('${t.id}')" class="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer hover:shadow-md transition">
                     <div class="flex justify-between items-start mb-2">
-                         <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">${t.priority || 'Low'}</span>
+                         <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">${t.priority || 'Medium'}</span>
                          ${t.isImportant ? '<i class="ph ph-star-fill text-yellow-400"></i>' : ''}
                     </div>
-                    <p class="text-sm font-medium text-slate-800 mb-2">${t.title}</p>
+                    <p class="text-sm font-medium text-slate-800 dark:text-white mb-2">${t.title}</p>
                     <div class="flex justify-between items-center text-xs text-slate-400">
-                         <span>${t.dueDate || 'No Date'}</span>
-                         <!-- Move Buttons -->
-                         <div class="flex gap-1">
-                             ${s !== 'Todo' ? `<button onclick="event.stopPropagation(); updateDocStatus('${t.id}', 'Todo')" class="hover:text-blue-600" title="Move to Todo"><i class="ph ph-caret-left"></i></button>` : ''}
-                             ${s !== 'In Progress' ? `<button onclick="event.stopPropagation(); updateDocStatus('${t.id}', 'In Progress')" class="hover:text-blue-600" title="Move to Progress"><i class="ph ${s==='Todo'?'ph-caret-right':'ph-caret-left'}"></i></button>` : ''}
-                             ${s !== 'Done' ? `<button onclick="event.stopPropagation(); updateDocStatus('${t.id}', 'Done')" class="hover:text-green-600" title="Move to Done"><i class="ph ph-check"></i></button>` : ''}
-                         </div>
+                         <span>${t.dueDate || ''}</span>
                     </div>
                 </div>`;
-                document.getElementById(cols[s]).innerHTML += card;
             });
-            
-            document.getElementById('count-todo').textContent = counts['Todo'];
-            document.getElementById('count-progress').textContent = counts['In Progress'];
-            document.getElementById('count-done').textContent = counts['Done'];
         }
 
         function renderProjectsSidebar() {
             document.getElementById('project-list-sidebar').innerHTML = projects.map(p => `
-                <button onclick="switchView('${p.id}')" id="nav-${p.id}" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition">
+                <button onclick="switchView('${p.id}')" id="nav-${p.id}" class="nav-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                     <span class="w-2.5 h-2.5 rounded-full" style="background:${p.color}"></span> ${p.name}
                 </button>`).join('');
         }
@@ -522,11 +545,11 @@
             selectedTaskId = id; 
             document.getElementById('empty-detail').classList.add('hidden-section');
             document.getElementById('active-detail').classList.remove('hidden-section');
+            document.getElementById('detail-panel').classList.add('open'); // Mobile
             refreshView(); 
-            const t = tasks.find(x => x.id === id);
-            populateDetail(t);
+            populateDetail(tasks.find(t=>t.id===id));
         };
-        window.closeDetail = () => { selectedTaskId = null; document.getElementById('active-detail').classList.add('hidden-section'); document.getElementById('empty-detail').classList.remove('hidden-section'); refreshView(); };
+        window.closeDetail = () => { selectedTaskId = null; document.getElementById('active-detail').classList.add('hidden-section'); document.getElementById('empty-detail').classList.remove('hidden-section'); document.getElementById('detail-panel').classList.remove('open'); refreshView(); };
 
         window.handleQuickAdd = async (e) => {
             if (e.key === 'Enter' && e.target.value.trim()) {
@@ -535,69 +558,108 @@
                 await addDoc(collection(db, "tasks"), {
                     userId: currentUser.uid, title: e.target.value, status: 'Todo', priority: 'Medium',
                     isImportant: isImp, projectId: pid, isMyDay: currentView === 'myday', createdAt: serverTimestamp(),
-                    activity: [`Task created on ${new Date().toLocaleDateString()}`], comments: []
+                    steps: [], comments: []
                 });
                 e.target.value = '';
             }
         };
 
-        window.updateDocStatus = async (id, s) => { await updateDoc(doc(db, "tasks", id), { status: s }); if(s==='Done') confetti({origin:{y:0.8}}); };
-        window.toggleStatus = (id, s) => window.updateDocStatus(id, s === 'Done' ? 'Todo' : 'Done');
-        
-        // DETAIL PANEL
+        window.toggleStatus = async (id, s) => { 
+            const n = s === 'Done' ? 'Todo' : 'Done'; 
+            if(n==='Done') confetti({particleCount: 40, spread: 50, origin: {y: 0.7}});
+            await updateDoc(doc(db, "tasks", id), { status: n }); 
+        };
+        window.updateTaskDetail = async (k, v) => { if(selectedTaskId) await updateDoc(doc(db, "tasks", selectedTaskId), { [k]: v }); };
+
+        // === SUBTASKS LOGIC ===
         function populateDetail(t) {
             if(!t) return;
             const titleEl = document.getElementById('detail-title');
             titleEl.value = t.title;
             titleEl.onchange = () => updateDoc(doc(db, "tasks", t.id), {title: titleEl.value});
             
-            document.getElementById('detail-check').className = `mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition text-white ${t.status === 'Done' ? 'bg-blue-500 border-blue-500' : 'border-slate-300'}`;
+            document.getElementById('detail-check').className = `mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition text-white ${t.status === 'Done' ? 'bg-blue-500 border-blue-500' : 'border-slate-300 dark:border-slate-600'}`;
             document.getElementById('detail-star').className = t.isImportant ? "text-yellow-400 text-2xl" : "text-slate-300 hover:text-yellow-400 text-2xl";
+            document.getElementById('detail-myday-btn').className = `w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition ${t.isMyDay?'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400':'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'}`;
+            document.getElementById('detail-myday-text').textContent = t.isMyDay ? "Added to My Day" : "Add to My Day";
             
             document.getElementById('detail-due').value = t.dueDate || '';
-            document.getElementById('detail-due').onchange = (e) => updateDoc(doc(db, "tasks", t.id), {dueDate: e.target.value});
-            
-            document.getElementById('detail-priority').value = t.priority || 'Medium';
-            document.getElementById('detail-priority').onchange = (e) => updateDoc(doc(db, "tasks", t.id), {priority: e.target.value});
-            
             document.getElementById('detail-project').value = t.projectId || '';
-            document.getElementById('detail-project').onchange = (e) => updateDoc(doc(db, "tasks", t.id), {projectId: e.target.value});
+            document.getElementById('detail-notes').value = t.remarks || '';
+            document.getElementById('detail-repeat').value = t.repeat || '';
 
-            // Activity Log
-            const logs = t.activity || [];
-            const comments = t.comments || [];
-            const combined = [...logs.map(l=>({type:'log', val:l})), ...comments.map(c=>({type:'com', val:c}))];
-            document.getElementById('activity-log').innerHTML = combined.map(i => 
-                `<div class="text-xs ${i.type==='log'?'text-slate-400 italic':'text-slate-700 bg-slate-50 p-2 rounded'}">${i.val}</div>`
-            ).join('');
+            // Render Steps
+            const stepsDiv = document.getElementById('steps-list');
+            const steps = t.steps || [];
+            stepsDiv.innerHTML = steps.map((s, idx) => `
+                <div class="flex items-center gap-3 p-2 group hover:bg-slate-50 dark:hover:bg-slate-800 rounded">
+                    <div onclick="toggleStep(${idx})" class="w-4 h-4 rounded-full border border-slate-400 dark:border-slate-500 cursor-pointer step-check flex items-center justify-center ${s.done ? 'bg-blue-500 border-blue-500' : ''}">
+                        ${s.done ? '<i class="ph ph-check text-white text-[10px]"></i>' : ''}
+                    </div>
+                    <input type="text" value="${s.text}" onchange="updateStepText(${idx}, this.value)" class="flex-1 bg-transparent outline-none text-sm ${s.done ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-200'}">
+                    <button onclick="deleteStep(${idx})" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="ph ph-x"></i></button>
+                </div>
+            `).join('');
+
+            // Reminder Display
+            document.getElementById('detail-remind-display').textContent = t.reminderTime ? new Date(t.reminderTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
         }
-        function renderDetailSelect() { document.getElementById('detail-project').innerHTML = '<option value="">No Project</option>' + projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); }
 
+        window.addStep = async () => {
+             const t = tasks.find(x=>x.id===selectedTaskId);
+             const newSteps = [...(t.steps || []), {text: "", done: false}];
+             await updateDoc(doc(db, "tasks", selectedTaskId), {steps: newSteps});
+        };
+        window.toggleStep = async (idx) => {
+             const t = tasks.find(x=>x.id===selectedTaskId);
+             const newSteps = [...t.steps];
+             newSteps[idx].done = !newSteps[idx].done;
+             await updateDoc(doc(db, "tasks", selectedTaskId), {steps: newSteps});
+        };
+        window.updateStepText = async (idx, txt) => {
+             const t = tasks.find(x=>x.id===selectedTaskId);
+             const newSteps = [...t.steps];
+             newSteps[idx].text = txt;
+             await updateDoc(doc(db, "tasks", selectedTaskId), {steps: newSteps});
+        };
+        window.deleteStep = async (idx) => {
+             const t = tasks.find(x=>x.id===selectedTaskId);
+             const newSteps = t.steps.filter((_, i) => i !== idx);
+             await updateDoc(doc(db, "tasks", selectedTaskId), {steps: newSteps});
+        };
+
+        window.renderDetailSelect = () => { document.getElementById('detail-project').innerHTML = '<option value="">No Project</option>' + projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); }
+        
+        // GLOBAL BUTTONS
         window.toggleDetailComplete = () => { const t = tasks.find(x=>x.id===selectedTaskId); window.toggleStatus(selectedTaskId, t.status); };
         window.toggleDetailStar = () => { const t = tasks.find(x=>x.id===selectedTaskId); updateDoc(doc(db, "tasks", t.id), {isImportant: !t.isImportant}); };
+        window.toggleDetailMyDay = async () => { const t = tasks.find(x=>x.id===selectedTaskId); await updateDoc(doc(db, "tasks", selectedTaskId), { isMyDay: !t.isMyDay }); };
         window.deleteTask = async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, "tasks", selectedTaskId)); closeDetail(); } };
-        
-        window.addComment = async () => {
-            const input = document.getElementById('detail-comment-input');
-            if(input.value.trim() && selectedTaskId) {
-                const t = tasks.find(x=>x.id===selectedTaskId);
-                const newComments = [...(t.comments || []), `${currentUser.displayName || 'User'}: ${input.value}`];
-                await updateDoc(doc(db, "tasks", selectedTaskId), {comments: newComments});
-                input.value = '';
+
+        // DARK MODE
+        window.toggleDarkMode = () => {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark'); localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark'); localStorage.setItem('theme', 'dark');
             }
         };
 
-        // PROFILE EDIT
-        document.getElementById('profile-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('edit-name').value;
-            const bio = document.getElementById('edit-bio').value;
-            const interests = document.getElementById('edit-interests').value;
-            await updateProfile(currentUser, {displayName: name});
-            await setDoc(doc(db, "userProfiles", currentUser.uid), { bio, interests }, { merge: true });
-            closeModal('profile-modal');
-            updateAppProfile(currentUser);
-        });
+        // REMINDERS
+        window.requestNotificationPermission = () => { if ("Notification" in window) Notification.requestPermission(); };
+        window.setReminder = async (val) => { 
+            if(selectedTaskId) await updateDoc(doc(db, "tasks", selectedTaskId), { reminderTime: val }); 
+        };
+        function checkReminders() {
+            const now = new Date().toISOString().slice(0, 16);
+            tasks.forEach(t => {
+                if(t.reminderTime && t.reminderTime === now && !t.notified) {
+                    new Notification("Taska Reminder", { body: t.title });
+                    updateDoc(doc(db, "tasks", t.id), { notified: true });
+                }
+            });
+        }
 
         // AUTH & MODALS
         window.openModal = (id) => document.getElementById(id).classList.remove('hidden-section');
@@ -609,6 +671,7 @@
         document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value).catch(e=>alert(e.message)); });
         document.getElementById('signup-form').addEventListener('submit', async (e) => { e.preventDefault(); try{ const c = await createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-pass').value); await updateProfile(c.user, {displayName: document.getElementById('signup-name').value}); }catch(e){alert(e.message);} });
         document.getElementById('project-form').addEventListener('submit', async (e) => { e.preventDefault(); await addDoc(collection(db, "projects"), { userId: currentUser.uid, name: document.getElementById('proj-name').value, color: document.getElementById('proj-color').value, createdAt: serverTimestamp() }); e.target.reset(); closeModal('project-modal'); });
+        document.getElementById('profile-form').addEventListener('submit', async (e) => { e.preventDefault(); await updateProfile(currentUser, {displayName: document.getElementById('edit-name').value}); await setDoc(doc(db, "userProfiles", currentUser.uid), { bio: document.getElementById('edit-bio').value, interests: document.getElementById('edit-interests').value }, {merge:true}); closeModal('profile-modal'); updateAppProfile(currentUser); });
 
     </script>
 </body>
