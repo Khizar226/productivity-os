@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taska - Simple Tasks. Strong Results.</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -29,10 +28,8 @@
         }
     </script>
     
-    <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Effects & Utilities -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -92,17 +89,14 @@
 
 <body class="bg-gray-50 text-slate-800 h-screen flex flex-col dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
 
-    <!-- LOADING -->
     <div id="loading-overlay" class="fixed inset-0 bg-white dark:bg-slate-900 z-[100] flex flex-col items-center justify-center">
         <div class="spinner mb-4"></div>
         <p class="text-slate-500 font-medium">Loading Workspace...</p>
     </div>
 
-<!-- AUTH SCREEN -->
 <div id="auth-screen" class="fixed inset-0 z-[90] bg-white dark:bg-slate-900 flex items-center justify-center p-4">
     <div class="w-full max-w-md text-center">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 text-white mb-6 shadow-xl shadow-blue-500/20 overflow-hidden">
-            <!-- PNG Logo -->
             <img src="taska-logo-226.png" alt="Taska Logo" class="w-10 h-10 object-contain">
         </div>
         <h1 class="text-4xl font-bold text-slate-900 dark:text-white mb-2">Taska</h1>
@@ -127,25 +121,19 @@
         </div>
     </div>
 </div>
-    <!-- MAIN APP -->
     <div id="main-app" class="flex h-full hidden-section relative overflow-hidden">
         
-        <!-- Mobile Overlay -->
         <div id="mobile-overlay" class="mobile-overlay md:hidden" onclick="toggleSidebar()"></div>
 
-        <!-- SIDEBAR -->
         <aside id="sidebar" class="w-72 bg-white dark:bg-slate-850 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 transition-all z-50">
-            <!-- Sidebar Header -->
             <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white"><i class="ph ph-check-fat weight-bold"></i></div>
                     <span class="font-bold text-xl tracking-tight dark:text-white">Taska</span>
                 </div>
-                <!-- Close Sidebar (Mobile) -->
                 <button onclick="toggleSidebar()" class="md:hidden p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><i class="ph ph-x text-xl"></i></button>
             </div>
 
-            <!-- Profile -->
             <div class="p-4">
                 <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition" onclick="openModal('profile-modal')">
                     <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 text-white flex items-center justify-center font-bold text-lg shadow-sm" id="sidebar-avatar">U</div>
@@ -156,7 +144,6 @@
                 </div>
             </div>
 
-            <!-- Nav -->
             <nav class="flex-1 overflow-y-auto px-4 space-y-1">
                 <button onclick="switchView('myday')" id="nav-myday" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"><i class="ph ph-sun text-lg"></i> My Day</button>
                 <button onclick="switchView('important')" id="nav-important" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"><i class="ph ph-star text-lg"></i> Important</button>
@@ -170,18 +157,14 @@
                 <div id="project-list-sidebar" class="space-y-1"></div>
             </nav>
             
-            <!-- Footer -->
             <div class="p-4 border-t border-slate-100 dark:border-slate-800 text-center">
                  <p class="text-xs font-bold text-slate-400">Designed by Khizar Hayat</p>
             </div>
         </aside>
 
-        <!-- CONTENT -->
         <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-slate-900 relative transition-colors">
-            <!-- Header -->
             <header class="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur z-20 sticky top-0">
                 <div class="flex items-center gap-4">
-                    <!-- Sidebar Toggle -->
                     <button class="text-slate-500 hover:text-blue-600 transition p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" onclick="toggleSidebar()">
                         <i class="ph ph-list text-2xl"></i>
                     </button>
@@ -191,22 +174,18 @@
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <!-- Dark Mode Toggle -->
                     <button onclick="toggleDarkMode()" class="p-2 text-slate-400 hover:text-blue-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                         <i class="ph ph-moon text-xl dark:hidden"></i>
                         <i class="ph ph-sun text-xl hidden dark:block"></i>
                     </button>
-                    <!-- Settings -->
                     <button onclick="openModal('profile-modal')" class="p-2 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                         <i class="ph ph-gear text-xl"></i>
                     </button>
                 </div>
             </header>
 
-            <!-- TASKS LIST -->
             <div id="view-list" class="flex-1 overflow-y-auto p-6 md:p-10 relative">
                 
-                <!-- Desktop Quick Add Bar -->
                 <div class="hidden md:flex bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-2 items-center gap-3 mb-8 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900 focus-within:border-blue-400 transition-all">
                     <i class="ph ph-plus text-xl text-slate-300 ml-3"></i>
                     <input type="text" id="quick-add-input" placeholder="Add a new task..." class="flex-1 bg-transparent outline-none text-slate-700 dark:text-slate-200 placeholder-slate-400 h-10" onkeydown="handleQuickAdd(event)">
@@ -226,13 +205,11 @@
 
                 <div id="task-list-container" class="space-y-2 pb-24"></div>
 
-                <!-- Floating Action Button (Universal) -->
                 <button onclick="openAddModal()" class="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-500/40 flex items-center justify-center text-3xl hover:scale-110 active:scale-95 transition z-40">
                     <i class="ph ph-plus"></i>
                 </button>
             </div>
 
-            <!-- BOARD VIEW -->
             <div id="view-board" class="flex-1 overflow-x-auto overflow-y-hidden p-6 hidden-section bg-slate-50 dark:bg-slate-850">
                 <div class="flex gap-6 h-full">
                     <div class="board-column flex flex-col h-full w-80 min-w-[300px]"><div class="flex justify-between mb-4"><h3 class="font-bold dark:text-white">To Do</h3></div><div class="flex-1 overflow-y-auto space-y-3" id="board-todo"></div></div>
@@ -242,7 +219,6 @@
             </div>
         </main>
 
-        <!-- DETAIL PANEL (Edit Task) -->
         <aside id="detail-panel" class="w-96 bg-white dark:bg-slate-850 border-l border-slate-200 dark:border-slate-800 hidden lg:flex flex-col shadow-2xl z-50 transition-transform">
              <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800">
                 <span class="font-bold text-sm text-slate-400 uppercase">Edit Task</span>
@@ -274,7 +250,6 @@
             </div>
         </aside>
 
-        <!-- ADD TASK MODAL (Universal) -->
         <div id="add-modal" class="hidden-section fixed inset-0 bg-black/50 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
             <div class="bg-white dark:bg-slate-800 w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl animate-slide-up">
                 <div class="flex justify-between mb-4">
@@ -302,8 +277,7 @@
                          <label class="text-xs text-slate-400 font-bold uppercase block mb-1">Project</label>
                          <select id="modal-add-project" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm dark:text-white">
                              <option value="">No Project</option>
-                             <!-- JS Filled -->
-                         </select>
+                             </select>
                     </div>
                 </div>
 
@@ -313,7 +287,6 @@
             </div>
         </div>
         
-        <!-- EDIT PROJECT MODAL -->
         <div id="edit-project-modal" class="hidden-section fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
             <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl">
                 <h3 class="font-bold text-lg mb-4 dark:text-white">Edit Project</h3>
@@ -335,7 +308,18 @@
             </div>
         </div>
 
-        <!-- PROFILE MODAL -->
+        <div id="share-project-modal" class="hidden-section fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg dark:text-white">Share Project</h3>
+                    <button onclick="closeModal('share-project-modal')" class="text-slate-400"><i class="ph ph-x text-xl"></i></button>
+                </div>
+                <p class="text-sm text-slate-500 mb-4">Invite others to collaborate on this project.</p>
+                <input type="email" id="share-email" placeholder="Enter user email..." class="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white rounded-lg px-3 py-2 outline-none focus:border-blue-500 mb-4">
+                <button onclick="triggerShare()" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Invite User</button>
+            </div>
+        </div>
+
         <div id="profile-modal" class="hidden-section fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
             <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-lg p-8 shadow-2xl relative">
                 <button onclick="closeModal('profile-modal')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="ph ph-x text-xl"></i></button>
@@ -354,7 +338,6 @@
             </div>
         </div>
 
-        <!-- NEW PROJECT MODAL -->
         <div id="project-modal" class="hidden-section fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
             <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
                 <h3 class="text-lg font-bold mb-4 dark:text-white">New Project</h3>
@@ -371,11 +354,10 @@
 
     </div>
 
-    <!-- SCRIPTS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, updateDoc, doc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, updateDoc, doc, deleteDoc, getDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDcA7kVuRrK9194a7rDSvPM0PgaLHSLkIk",
@@ -390,7 +372,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let currentUser = null, tasks = [], projects = [], currentView = 'myday', selectedTaskId = null, editingProjectId = null;
+        let currentUser = null, tasks = [], projects = [], currentView = 'myday', selectedTaskId = null, editingProjectId = null, sharingProjectId = null;
 
         // AUTH
         onAuthStateChanged(auth, async (user) => {
@@ -405,7 +387,6 @@
                 document.getElementById('edit-email').textContent = user.email;
                 document.getElementById('edit-avatar').textContent = (user.displayName||'U')[0].toUpperCase();
                 
-                // Load Bio
                 try {
                     const snap = await getDoc(doc(db, "userProfiles", user.uid));
                     if(snap.exists()) {
@@ -423,28 +404,101 @@
         });
 
         function subscribeData() {
+            // Listen for projects I own
             onSnapshot(query(collection(db, "projects"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc")), (s) => {
-                projects = s.docs.map(d => ({id: d.id, ...d.data()}));
-                renderSidebarProjects(); renderDetailSelect(); renderModalSelect(); refreshView();
+                handleProjectUpdate(s.docs.map(d => ({id: d.id, ...d.data(), isShared: false})), 'own');
             });
+
+            // Listen for projects shared with me
+            onSnapshot(query(collection(db, "projects"), where("sharedWith", "array-contains", currentUser.email)), (s) => {
+                 handleProjectUpdate(s.docs.map(d => ({id: d.id, ...d.data(), isShared: true})), 'shared');
+            });
+            
+            // Listen for tasks I created
             onSnapshot(query(collection(db, "tasks"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc")), (s) => {
-                tasks = s.docs.map(d => ({id: d.id, ...d.data()}));
-                refreshView();
-                if(selectedTaskId) populateDetail(tasks.find(t=>t.id===selectedTaskId));
+                handleTaskUpdate(s.docs.map(d => ({id: d.id, ...d.data()})), 'mine');
             });
+        }
+
+        // Handle merging of projects (Own + Shared)
+        let ownProjects = [], sharedProjects = [];
+        let unsubscribeSharedTasks = null;
+
+        function handleProjectUpdate(data, type) {
+            if(type === 'own') ownProjects = data;
+            if(type === 'shared') sharedProjects = data;
+            
+            projects = [...ownProjects, ...sharedProjects].sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+            
+            renderSidebarProjects(); 
+            renderDetailSelect(); 
+            renderModalSelect(); 
+            refreshView();
+
+            // If we have shared projects, we need to listen for tasks inside them (created by others)
+            const sharedIds = sharedProjects.map(p => p.id);
+            if(unsubscribeSharedTasks) unsubscribeSharedTasks(); // Reset previous listener
+            
+            if(sharedIds.length > 0) {
+                // Limit: Firestore 'in' query supports max 10 values. For simplicity in this edit, taking first 10.
+                const safeIds = sharedIds.slice(0, 10); 
+                unsubscribeSharedTasks = onSnapshot(query(collection(db, "tasks"), where("projectId", "in", safeIds)), (s) => {
+                    handleTaskUpdate(s.docs.map(d => ({id: d.id, ...d.data()})), 'sharedProj');
+                });
+            }
+        }
+
+        // Handle merging of tasks (Mine + Shared)
+        let myTasks = [], sharedProjTasks = [];
+        function handleTaskUpdate(data, type) {
+            if(type === 'mine') myTasks = data;
+            if(type === 'sharedProj') sharedProjTasks = data;
+            
+            // Merge and de-duplicate by ID
+            const all = [...myTasks, ...sharedProjTasks];
+            const uniqueMap = new Map();
+            all.forEach(item => uniqueMap.set(item.id, item));
+            tasks = Array.from(uniqueMap.values()).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+            
+            refreshView();
+            if(selectedTaskId) populateDetail(tasks.find(t=>t.id===selectedTaskId));
         }
 
         window.refreshView = () => {
             const list = document.getElementById('task-list-container');
             const hTitle = document.getElementById('header-title');
+            const hSub = document.getElementById('header-subtitle');
             const today = new Date().toISOString().split('T')[0];
             let filtered = [];
 
-            if(currentView === 'myday') { filtered = tasks.filter(t => t.isMyDay || t.dueDate === today); hTitle.textContent = "My Day"; }
-            else if(currentView === 'all') { filtered = tasks; hTitle.textContent = "All Tasks"; }
-            else if(currentView === 'important') { filtered = tasks.filter(t => t.isImportant); hTitle.textContent = "Important"; }
-            else if(currentView === 'board') { filtered = tasks; }
-            else { const p = projects.find(x => x.id === currentView); if(p) { filtered = tasks.filter(t => t.projectId === currentView); hTitle.textContent = p.name; } }
+            if(currentView === 'myday') { 
+                filtered = tasks.filter(t => t.isMyDay || t.dueDate === today); 
+                hTitle.textContent = "My Day"; 
+                hSub.textContent = "Overview";
+            }
+            else if(currentView === 'all') { 
+                filtered = tasks; 
+                hTitle.textContent = "All Tasks"; 
+                hSub.textContent = "Everything";
+            }
+            else if(currentView === 'important') { 
+                filtered = tasks.filter(t => t.isImportant); 
+                hTitle.textContent = "Important"; 
+                hSub.textContent = "High Priority";
+            }
+            else if(currentView === 'board') { 
+                filtered = tasks; 
+                hTitle.textContent = "Board"; 
+                hSub.textContent = "Kanban View";
+            }
+            else { 
+                const p = projects.find(x => x.id === currentView); 
+                if(p) { 
+                    filtered = tasks.filter(t => t.projectId === currentView); 
+                    hTitle.innerHTML = `${p.name} ${p.isShared ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full ml-2">Shared</span>' : ''}`;
+                    hSub.textContent = "Project";
+                } 
+            }
 
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-blue-600'));
             const activeBtn = document.getElementById(`nav-${currentView}`);
@@ -465,9 +519,7 @@
             const isDone = t.status === 'Done';
             const proj = projects.find(p => p.id === t.projectId);
             const sel = t.id === selectedTaskId ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300';
-            const doneSteps = (t.steps||[]).filter(s=>s.done).length;
-            const stepText = (t.steps||[]).length ? `${doneSteps}/${t.steps.length}` : '';
-
+            
             return `
             <div onclick="selectTask('${t.id}')" class="bg-white dark:bg-slate-800 border rounded-xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer transition shadow-sm relative group ${sel}">
                 <button onclick="event.stopPropagation(); toggleStatus('${t.id}', '${t.status}')" class="check-circle w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 ${isDone ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-300 dark:border-slate-600'} flex items-center justify-center shrink-0">
@@ -510,8 +562,12 @@
                     <div class="flex items-center gap-3">
                          <span class="w-2.5 h-2.5 rounded-full" style="background:${p.color}"></span>
                          <span class="text-sm font-medium text-slate-600 dark:text-slate-300 ${currentView===p.id?'text-blue-600':''}">${p.name}</span>
+                         ${p.isShared ? '<i class="ph ph-users text-xs text-blue-400"></i>' : ''}
                     </div>
-                    <button onclick="event.stopPropagation(); editProject('${p.id}')" class="opacity-100 md:opacity-0 md:group-hover:opacity-100 text-slate-400 hover:text-blue-600 p-1"><i class="ph ph-gear-six"></i></button>
+                    <div class="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition">
+                         <button onclick="event.stopPropagation(); shareProject('${p.id}')" class="text-slate-400 hover:text-blue-600 p-1" title="Share Project"><i class="ph ph-share-network"></i></button>
+                         <button onclick="event.stopPropagation(); editProject('${p.id}')" class="text-slate-400 hover:text-blue-600 p-1"><i class="ph ph-gear-six"></i></button>
+                    </div>
                 </div>`).join('');
         }
         
@@ -592,6 +648,29 @@
         window.saveProjectEdit = async () => { if(!editingProjectId) return; const name = document.getElementById('edit-proj-name').value; const color = document.getElementById('edit-proj-color').value; await updateDoc(doc(db, "projects", editingProjectId), { name, color }); closeModal('edit-project-modal'); };
         window.deleteProject = async () => { if(!editingProjectId || !confirm("Delete project?")) return; await deleteDoc(doc(db, "projects", editingProjectId)); closeModal('edit-project-modal'); switchView('all'); };
 
+        // SHARE PROJECT LOGIC
+        window.shareProject = (id) => {
+            sharingProjectId = id;
+            document.getElementById('share-email').value = '';
+            openModal('share-project-modal');
+        }
+        
+        window.triggerShare = async () => {
+            const email = document.getElementById('share-email').value;
+            if(!email || !sharingProjectId) return;
+            
+            try {
+                await updateDoc(doc(db, "projects", sharingProjectId), {
+                    sharedWith: arrayUnion(email)
+                });
+                alert('Invitation sent! If the user has an account, the project will appear in their sidebar.');
+                closeModal('share-project-modal');
+            } catch(e) {
+                console.error(e);
+                alert("Error sharing project. Ensure you are the owner.");
+            }
+        }
+
         window.renderDetailSelect = () => { document.getElementById('detail-project').innerHTML = '<option value="">No Project</option>' + projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); }
         window.renderModalSelect = () => { document.getElementById('modal-add-project').innerHTML = '<option value="">No Project</option>' + projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); }
 
@@ -630,7 +709,7 @@
         document.getElementById('google-signin').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
         document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value).catch(e=>alert(e.message)); });
         document.getElementById('signup-form').addEventListener('submit', async (e) => { e.preventDefault(); try{ const c = await createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-pass').value); await updateProfile(c.user, {displayName: document.getElementById('signup-name').value}); }catch(e){alert(e.message);} });
-        document.getElementById('project-form').addEventListener('submit', async (e) => { e.preventDefault(); await addDoc(collection(db, "projects"), { userId: currentUser.uid, name: document.getElementById('proj-name').value, color: document.getElementById('proj-color').value, createdAt: serverTimestamp() }); e.target.reset(); closeModal('project-modal'); });
+        document.getElementById('project-form').addEventListener('submit', async (e) => { e.preventDefault(); await addDoc(collection(db, "projects"), { userId: currentUser.uid, name: document.getElementById('proj-name').value, color: document.getElementById('proj-color').value, createdAt: serverTimestamp(), sharedWith: [] }); e.target.reset(); closeModal('project-modal'); });
         document.getElementById('profile-form').addEventListener('submit', async (e) => { e.preventDefault(); await updateProfile(currentUser, {displayName: document.getElementById('edit-name').value}); await setDoc(doc(db, "userProfiles", currentUser.uid), { bio: document.getElementById('edit-bio').value, interests: document.getElementById('edit-interests').value }, {merge:true}); closeModal('profile-modal'); document.getElementById('sidebar-name').textContent = document.getElementById('edit-name').value; });
 
         window.toggleDarkMode = () => { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); };
