@@ -302,7 +302,7 @@
                     </div>
                 </div>
                 <div class="flex gap-2 mt-6">
-                    <button onclick="deleteProject()" class="flex-1 py-2 text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 rounded-lg">Delete</button>
+                    <button id="btn-project-action" onclick="handleProjectExit()" class="flex-1 py-2 text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 rounded-lg">Delete</button>
                     <button onclick="saveProjectEdit()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg">Save</button>
                 </div>
             </div>
@@ -357,7 +357,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, updateDoc, doc, deleteDoc, getDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, updateDoc, doc, deleteDoc, getDoc, setDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDcA7kVuRrK9194a7rDSvPM0PgaLHSLkIk",
@@ -420,7 +420,7 @@
             });
         }
 
-        // Handle merging of projects (Own + Shared)
+        // Handle merging of projects (Own + Shared) + Filtering LEAVERS
         let ownProjects = [], sharedProjects = [];
         let unsubscribeSharedTasks = null;
 
@@ -428,7 +428,11 @@
             if(type === 'own') ownProjects = data;
             if(type === 'shared') sharedProjects = data;
             
-            projects = [...ownProjects, ...sharedProjects].sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+            // MERGE & FILTER: Remove projects where I am in 'hiddenFromIds'
+            const allRaw = [...ownProjects, ...sharedProjects];
+            projects = allRaw.filter(p => !p.hiddenFromIds || !p.hiddenFromIds.includes(currentUser.uid));
+            
+            projects.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             
             renderSidebarProjects(); 
             renderDetailSelect(); 
@@ -436,11 +440,11 @@
             refreshView();
 
             // If we have shared projects, we need to listen for tasks inside them (created by others)
-            const sharedIds = sharedProjects.map(p => p.id);
-            if(unsubscribeSharedTasks) unsubscribeSharedTasks(); // Reset previous listener
+            const sharedIds = projects.filter(p => p.isShared || (p.userId === currentUser.uid && p.sharedWith && p.sharedWith.length > 0)).map(p => p.id);
+            if(unsubscribeSharedTasks) unsubscribeSharedTasks(); 
             
             if(sharedIds.length > 0) {
-                // Limit: Firestore 'in' query supports max 10 values. For simplicity in this edit, taking first 10.
+                // Limit: Firestore 'in' query max 10
                 const safeIds = sharedIds.slice(0, 10); 
                 unsubscribeSharedTasks = onSnapshot(query(collection(db, "tasks"), where("projectId", "in", safeIds)), (s) => {
                     handleTaskUpdate(s.docs.map(d => ({id: d.id, ...d.data()})), 'sharedProj');
@@ -454,11 +458,14 @@
             if(type === 'mine') myTasks = data;
             if(type === 'sharedProj') sharedProjTasks = data;
             
-            // Merge and de-duplicate by ID
             const all = [...myTasks, ...sharedProjTasks];
             const uniqueMap = new Map();
             all.forEach(item => uniqueMap.set(item.id, item));
-            tasks = Array.from(uniqueMap.values()).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+            
+            // Filter out tasks from hidden projects
+            tasks = Array.from(uniqueMap.values())
+                .filter(t => !t.projectId || projects.find(p => p.id === t.projectId))
+                .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             
             refreshView();
             if(selectedTaskId) populateDetail(tasks.find(t=>t.id===selectedTaskId));
@@ -497,7 +504,11 @@
                     filtered = tasks.filter(t => t.projectId === currentView); 
                     hTitle.innerHTML = `${p.name} ${p.isShared ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full ml-2">Shared</span>' : ''}`;
                     hSub.textContent = "Project";
-                } 
+                } else {
+                    // Project might have been left/deleted
+                    switchView('myday');
+                    return;
+                }
             }
 
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-blue-600'));
@@ -636,18 +647,67 @@
         window.deleteTaskById = async (id) => { if(confirm("Delete task?")) await deleteDoc(doc(db, "tasks", id)); };
         window.deleteTask = () => deleteTaskById(selectedTaskId);
 
-        // PROJECT EDITING
+        // PROJECT EDITING + LEAVING LOGIC
         window.editProject = (id) => {
             const p = projects.find(x => x.id === id);
             editingProjectId = id;
             document.getElementById('edit-proj-id').value = id;
             document.getElementById('edit-proj-name').value = p.name;
             document.getElementById('edit-proj-color').value = p.color;
+            
+            // LOGIC FOR BUTTON TEXT
+            const btn = document.getElementById('btn-project-action');
+            if (p.isShared) {
+                // I am a member (not owner)
+                btn.textContent = "Leave Project";
+                btn.classList.remove('text-red-500', 'bg-red-50');
+                btn.classList.add('text-orange-500', 'bg-orange-50');
+            } else if (p.sharedWith && p.sharedWith.length > 0) {
+                 // I am owner, but it is shared (User B scenario)
+                 btn.textContent = "Leave Project";
+                 btn.classList.remove('text-red-500', 'bg-red-50');
+                 btn.classList.add('text-orange-500', 'bg-orange-50');
+            } else {
+                 // I am owner, nobody else is here
+                 btn.textContent = "Delete";
+                 btn.classList.add('text-red-500', 'bg-red-50');
+                 btn.classList.remove('text-orange-500', 'bg-orange-50');
+            }
+            
             openModal('edit-project-modal');
         };
-        window.saveProjectEdit = async () => { if(!editingProjectId) return; const name = document.getElementById('edit-proj-name').value; const color = document.getElementById('edit-proj-color').value; await updateDoc(doc(db, "projects", editingProjectId), { name, color }); closeModal('edit-project-modal'); };
-        window.deleteProject = async () => { if(!editingProjectId || !confirm("Delete project?")) return; await deleteDoc(doc(db, "projects", editingProjectId)); closeModal('edit-project-modal'); switchView('all'); };
 
+        window.handleProjectExit = async () => {
+             if(!editingProjectId) return;
+             const p = projects.find(x => x.id === editingProjectId);
+             if(!p) return;
+
+             // 1. If I am just a member, I remove myself from sharedWith
+             if (p.isShared) {
+                 if(!confirm("Leave this project? You will lose access.")) return;
+                 await updateDoc(doc(db, "projects", editingProjectId), {
+                     sharedWith: arrayRemove(currentUser.email)
+                 });
+             } 
+             // 2. If I am owner, but others are in it -> I hide it from myself (soft leave)
+             else if (p.sharedWith && p.sharedWith.length > 0) {
+                 if(!confirm("Leave project? The other members will keep access, but you won't see it anymore.")) return;
+                 await updateDoc(doc(db, "projects", editingProjectId), {
+                     hiddenFromIds: arrayUnion(currentUser.uid)
+                 });
+             }
+             // 3. If I am owner and alone -> Delete it
+             else {
+                 if(!confirm("Delete project permanently?")) return;
+                 await deleteDoc(doc(db, "projects", editingProjectId));
+             }
+             
+             closeModal('edit-project-modal'); 
+             switchView('all');
+        };
+
+        window.saveProjectEdit = async () => { if(!editingProjectId) return; const name = document.getElementById('edit-proj-name').value; const color = document.getElementById('edit-proj-color').value; await updateDoc(doc(db, "projects", editingProjectId), { name, color }); closeModal('edit-project-modal'); };
+        
         // SHARE PROJECT LOGIC
         window.shareProject = (id) => {
             sharingProjectId = id;
@@ -658,17 +718,13 @@
         window.triggerShare = async () => {
             const email = document.getElementById('share-email').value;
             if(!email || !sharingProjectId) return;
-            
             try {
                 await updateDoc(doc(db, "projects", sharingProjectId), {
                     sharedWith: arrayUnion(email)
                 });
-                alert('Invitation sent! If the user has an account, the project will appear in their sidebar.');
+                alert('Invitation sent!');
                 closeModal('share-project-modal');
-            } catch(e) {
-                console.error(e);
-                alert("Error sharing project. Ensure you are the owner.");
-            }
+            } catch(e) { console.error(e); alert("Error sharing project."); }
         }
 
         window.renderDetailSelect = () => { document.getElementById('detail-project').innerHTML = '<option value="">No Project</option>' + projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); }
