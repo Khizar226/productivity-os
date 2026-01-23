@@ -318,8 +318,8 @@
                 <div class="flex-1 overflow-y-auto p-6 space-y-6">
                     <div><div id="steps-list" class="space-y-2 mb-2"></div><button class="text-blue-600 text-sm font-medium flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 p-2 rounded w-full transition" onclick="addStep()"><i class="ph ph-plus"></i> Add step</button></div>
                     <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                         <div class="flex items-center gap-3"><i class="ph ph-calendar text-xl text-slate-400"></i><input type="date" id="detail-due" class="bg-transparent outline-none text-sm text-slate-600 dark:text-slate-300 w-full" onchange="updateTaskDetail('dueDate', this.value)"></div>
-                         <div class="flex items-center gap-3"><i class="ph ph-bell text-xl text-slate-400"></i><input type="datetime-local" id="detail-reminder" class="bg-transparent outline-none text-sm text-slate-600 dark:text-slate-300 w-full" onchange="updateTaskDetail('reminder', this.value)" title="Set Reminder"></div>
+                         <div class="flex items-center gap-3"><label class="w-20 text-xs font-bold text-slate-400 uppercase">Due Date</label><input type="date" id="detail-due" class="bg-transparent outline-none text-sm text-slate-600 dark:text-slate-300 w-full" onchange="updateTaskDetail('dueDate', this.value)"></div>
+                         <div class="flex items-center gap-3"><label class="w-20 text-xs font-bold text-slate-400 uppercase">Reminder</label><input type="datetime-local" id="detail-reminder" class="bg-transparent outline-none text-sm text-slate-600 dark:text-slate-300 w-full" onchange="updateTaskDetail('reminder', this.value)" title="Set Reminder"></div>
                          <div class="flex items-center gap-3"><i class="ph ph-flag text-xl text-slate-400"></i><select id="detail-priority" class="bg-transparent outline-none text-sm text-slate-600 dark:text-slate-300 w-full dark:bg-slate-850" onchange="updateTaskDetail('priority', this.value)"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option><option value="Critical">Critical</option></select></div>
                          <div class="flex items-center gap-3"><i class="ph ph-user text-xl text-slate-400"></i><input type="text" id="detail-assignee" placeholder="Assignee (email)" class="bg-transparent outline-none text-sm text-slate-600 dark:text-slate-300 w-full" onchange="updateTaskDetail('assignee', this.value)"></div>
                     </div>
@@ -343,7 +343,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, updateDoc, doc, deleteDoc, getDoc, setDoc, arrayUnion, arrayRemove, enableMultiTabIndexedDbPersistence, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, updateDoc, doc, deleteDoc, getDoc, setDoc, arrayUnion, arrayRemove, enableMultiTabIndexedDbPersistence, writeBatch, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDcA7kVuRrK9194a7rDSvPM0PgaLHSLkIk",
@@ -508,23 +508,9 @@
             });
         }
 
-        // Ranking Logic
         async function loadRankings() {
-            const list = document.getElementById('ranking-list');
-            list.innerHTML = '<div class="p-4 text-center">Loading rankings...</div>';
-            // In production, limit this query. For demo, fetching all users.
-            const snap = await getDoc(collection(db, "userProfiles")); // Wrong, use getDocs for collection
-            // Correction:
-            import { getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-            const q = query(collection(db, "userProfiles"), orderBy("totalXP", "desc"), limit(20)); // Need limit import
-            // Simpler approach for this file without adding more imports:
-            // I will assume global `getDocs` is available or import it.
-            // Let's rely on a simpler mock or properly import getDocs.
-        }
-        // ... (Adding missing imports for Ranking)
-        import { getDocs, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        window.loadRankings = async () => {
+             const list = document.getElementById('ranking-list');
+             list.innerHTML = '<div class="p-4 text-center">Loading rankings...</div>';
              const q = query(collection(db, "userProfiles"), orderBy("totalXP", "desc"), limit(20));
              const snap = await getDocs(q);
              let html = '';
@@ -659,7 +645,7 @@
         window.openAddModal = () => document.getElementById('add-modal').classList.remove('hidden-section');
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden-section');
         window.toggleSidebar = () => { const sb = document.getElementById('sidebar'); const ov = document.getElementById('mobile-overlay'); if(sb.style.marginLeft === '0px') { sb.style.marginLeft = '-18rem'; ov.classList.remove('open'); } else { sb.style.marginLeft = '0px'; ov.classList.add('open'); } };
-        window.selectTask = (id) => { selectedTaskId = id; const t = tasks.find(x=>x.id===id); document.getElementById('detail-title').value = t.title; document.getElementById('detail-due').value = t.dueDate||''; document.getElementById('detail-assignee').value = t.assignee||''; document.getElementById('detail-panel').classList.remove('hidden-section'); setTimeout(()=>document.getElementById('active-detail').classList.remove('hidden-section'), 50); };
+        window.selectTask = (id) => { selectedTaskId = id; const t = tasks.find(x=>x.id===id); document.getElementById('detail-title').value = t.title; document.getElementById('detail-due').value = t.dueDate||''; document.getElementById('detail-reminder').value = t.reminder||''; document.getElementById('detail-assignee').value = t.assignee||''; document.getElementById('detail-panel').classList.remove('hidden-section'); setTimeout(()=>document.getElementById('active-detail').classList.remove('hidden-section'), 50); };
         window.closeDetail = () => { document.getElementById('detail-panel').classList.add('hidden-section'); };
         window.updateTaskDetail = async (k, v) => { if(selectedTaskId) await updateDoc(doc(db, "tasks", selectedTaskId), { [k]: v }); };
         window.softDeleteTask = async () => { if(selectedTaskId) await updateDoc(doc(db, "tasks", selectedTaskId), {deletedAt: serverTimestamp()}); closeDetail(); };
@@ -669,6 +655,79 @@
         window.showAuth = () => { document.getElementById('landing-page').classList.add('hidden-section'); document.getElementById('auth-screen').classList.remove('hidden-section'); };
         window.toggleDarkMode = () => { document.documentElement.classList.toggle('dark'); };
         document.getElementById('google-signin').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
+        
+        // Reminder Check
+        function checkReminders() {
+             const now = new Date().toISOString().slice(0, 16);
+             tasks.forEach(t => {
+                  if(!t.deletedAt && t.status !== 'Done' && t.reminder && t.reminder === now) {
+                       document.getElementById('alarm-sound').play().catch(()=>{});
+                       alert(`Reminder: ${t.title}`);
+                  }
+             });
+        }
+        
+        // Bins
+        window.emptyBin = async () => { if(confirm("Empty bin?")) { const batch = writeBatch(db); tasks.filter(t=>t.deletedAt).forEach(t => batch.delete(doc(db, "tasks", t.id))); await batch.commit(); } };
+        window.renderBin = () => {
+             const bin = document.getElementById('bin-list');
+             const deleted = tasks.filter(t => t.deletedAt);
+             if(deleted.length === 0) { bin.innerHTML = '<div class="text-center text-slate-400 py-10">Bin is empty</div>'; return; }
+             bin.innerHTML = deleted.map(t => `<div class="flex justify-between items-center p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700"><span class="line-through text-slate-500">${t.title}</span><div class="flex gap-2"><button onclick="restoreTask('${t.id}')" class="text-green-500 hover:text-green-700 text-sm">Restore</button><button onclick="permanentDeleteTask('${t.id}')" class="text-red-500 hover:text-red-700 text-sm">Delete Forever</button></div></div>`).join('');
+        }
+        window.restoreTask = async(id) => { await updateDoc(doc(db, "tasks", id), { deletedAt: null }); };
+        window.permanentDeleteTask = async(id) => { if(confirm("Permanently delete?")) await deleteDoc(doc(db, "tasks", id)); };
+
+        // Other Views Renderers
+        window.renderSidebarProjects = () => { document.getElementById('project-list-sidebar').innerHTML = projects.map(p => `<div class="group flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer" onclick="switchView('${p.id}')"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full" style="background:${p.color}"></span><span class="text-sm font-medium text-slate-600 dark:text-slate-300 ${currentView===p.id?'text-blue-600':''}">${p.name}</span></div></div>`).join(''); };
+        window.renderModalSelect = () => { document.getElementById('modal-add-project').innerHTML = '<option value="">No Project</option>' + projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); };
+        let calDate = new Date();
+        window.changeMonth = (d) => { calDate.setMonth(calDate.getMonth() + d); refreshView(); }
+        window.renderCalendar = (list) => {
+            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+            const y = calDate.getFullYear(), m = calDate.getMonth();
+            document.getElementById('calendar-month-year').textContent = calDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            const firstDay = new Date(y, m, 1).getDay();
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+            for(let i=0; i<firstDay; i++) grid.innerHTML += '<div class="calendar-day bg-slate-50 dark:bg-slate-800"></div>';
+            for(let d=1; d<=daysInMonth; d++) {
+                const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const dayTasks = list.filter(t => t.dueDate === dateStr);
+                grid.innerHTML += `<div class="calendar-day relative hover:bg-slate-50 dark:hover:bg-slate-800 transition"><div class="text-xs font-bold mb-1 text-slate-400">${d}</div><div class="space-y-1 overflow-y-auto max-h-[80px]">${dayTasks.map(t => `<div onclick="selectTask('${t.id}')" class="text-[10px] p-1 rounded ${t.status==='Done'?'bg-green-100 text-green-700':'bg-blue-100 text-blue-700'} truncate cursor-pointer">${t.title}</div>`).join('')}</div></div>`;
+            }
+        }
+        window.renderBoard = (list) => { const cols = { 'Todo': 'board-todo', 'In Progress': 'board-progress', 'Done': 'board-done' }; Object.values(cols).forEach(id => document.getElementById(id).innerHTML = ''); list.forEach(t => { const s = t.status === 'Done' ? 'Done' : (t.status === 'In Progress' ? 'In Progress' : 'Todo'); document.getElementById(cols[s]).innerHTML += `<div onclick="selectTask('${t.id}')" class="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer hover:shadow-md transition"><div class="flex justify-between items-start mb-2"><span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">${t.priority || 'Medium'}</span>${t.isImportant ? '<i class="ph ph-star-fill text-yellow-400"></i>' : ''}</div><p class="text-sm font-medium text-slate-800 dark:text-white mb-2">${t.title}</p></div>`; }); }
+        
+        // Chat
+        let unsubscribeChat = null;
+        window.toggleChat = () => { const panel = document.getElementById('chat-panel'); if(panel.classList.contains('open')) { panel.classList.remove('open'); if(unsubscribeChat) unsubscribeChat(); } else { panel.classList.add('open'); loadChat(currentView); } };
+        function loadChat(projId) {
+             const msgContainer = document.getElementById('chat-messages'); msgContainer.innerHTML = '';
+             unsubscribeChat = onSnapshot(query(collection(db, "projects", projId, "messages"), orderBy("createdAt", "asc")), (s) => {
+                 s.docChanges().forEach(c => {
+                     if (c.type === "added") {
+                         const m = c.doc.data();
+                         const d = document.createElement('div');
+                         d.className = `flex flex-col ${m.userId===currentUser.uid?'items-end':'items-start'} mb-3 animate-slide-up`;
+                         d.innerHTML = `<span class="text-[10px] text-slate-400 px-1">${m.userName||'User'}</span><div class="${m.userId===currentUser.uid?'bg-blue-100 dark:bg-blue-900/30':'bg-slate-200 dark:bg-slate-800'} rounded-lg p-2 text-sm">${m.text}</div>`;
+                         msgContainer.appendChild(d);
+                     }
+                 });
+                 msgContainer.scrollTop = msgContainer.scrollHeight;
+             });
+        }
+        window.sendChat = () => { const i = document.getElementById('chat-input'); if(!i.value) return; addDoc(collection(db, "projects", currentView, "messages"), { text: i.value, userId: currentUser.uid, userName: document.getElementById('sidebar-name').textContent, createdAt: serverTimestamp() }); i.value = ''; };
+
+        // Stopwatch
+        window.openStopwatch = () => document.getElementById('stopwatch-modal').classList.remove('hidden-section');
+        window.toggleTimer = () => { if(timerInterval) { clearInterval(timerInterval); timerInterval = null; document.getElementById('icon-timer').className = 'ph ph-play-fill'; } else { document.getElementById('icon-timer').className = 'ph ph-pause-fill'; timerInterval = setInterval(()=>{ timerSeconds--; const m=Math.floor(timerSeconds/60).toString().padStart(2,'0'); const s=(timerSeconds%60).toString().padStart(2,'0'); document.getElementById('timer-display').textContent=`${m}:${s}`; if(timerSeconds<=0) { clearInterval(timerInterval); document.getElementById('alarm-sound').play(); alert("Time's up!"); } },1000); } };
+        window.resetTimer = () => { clearInterval(timerInterval); timerInterval = null; timerSeconds=1800; document.getElementById('timer-display').textContent="30:00"; document.getElementById('icon-timer').className='ph ph-play-fill'; };
+        window.extendTimer = (m) => { timerSeconds+=m*60; };
+        
+        // Import/Export
+        window.exportTasksCSV = () => { const rows = [["Title","Status","Priority"]]; tasks.forEach(t=>rows.push([`"${t.title}"`,t.status,t.priority])); const c = "data:text/csv;charset=utf-8,"+rows.map(e=>e.join(",")).join("\n"); const l = document.createElement("a"); l.href=encodeURI(c); l.download="tasks.csv"; l.click(); };
+        window.importTasksCSV = (i) => { const r=new FileReader(); r.onload=async(e)=>{ const l=e.target.result.split("\n").slice(1); const b=writeBatch(db); l.forEach(x=>{const c=x.split(","); if(c[0]){ const d=doc(collection(db,"tasks")); b.set(d,{userId:currentUser.uid,title:c[0].replace(/"/g,""),status:'Todo',createdAt:serverTimestamp()}); }}); await b.commit(); alert("Imported!"); location.reload(); }; r.readAsText(i.files[0]); };
+
     </script>
 </body>
 </html>
